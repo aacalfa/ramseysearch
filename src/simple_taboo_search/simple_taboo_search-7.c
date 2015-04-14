@@ -4,13 +4,18 @@
 #include <errno.h>
 #include <string.h>
 
+#include "omp.h"
 #include "fifo.h" /* for taboo list */
+#include "graph_utils.h" /* for ReadGraph */
 
 
 #define MAXSIZE (541)
 
 #define TABOOSIZE (500)
 #define BIGCOUNT (9999999)
+
+
+//double time1, time2; // Timing variables
 
 /***
  *** example of very simple search for R(7,7) counter examples
@@ -21,30 +26,6 @@
  *** uses a taboo list of size #TABOOSIZE# to hold and encoding of and edge
  *** (i,j)+clique_count
  ***/
-
-/*
- * PrintGraph
- *
- * prints in the right format for the read routine
- */
-void PrintGraph(int *g, int gsize)
-{
-	int i;
-	int j;
-
-	fprintf(stdout,"%d\n",gsize);
-
-	for(i=0; i < gsize; i++)
-	{
-		for(j=0; j < gsize; j++)
-		{
-			fprintf(stdout,"%d ",g[i*gsize+j]);
-		}
-		fprintf(stdout,"\n");
-	}
-
-	return;
-}
 
 /*
  * CopyGraph 
@@ -96,6 +77,9 @@ int CliqueCount(int *g,
 	int m;
 	int n;
 	int o;
+	/* Start timing */
+	//time1 = omp_get_wtime();
+
 	int count=0;
 	int sgsize = 7;
 	
@@ -158,6 +142,12 @@ int CliqueCount(int *g,
 			} /* end for 3 */
 		} /* end for 2 */
 	} /* end for 1 */
+#if 0
+	time2 = omp_get_wtime();
+	if (time2-time1 > 1)
+		printf("CliqueCount time: %g\n", time2 - time1);
+	time1 = time2;
+#endif
 	return(count);
 }
 
@@ -176,6 +166,7 @@ main(int argc,char *argv[])
 	int best_j;
 	void *taboo_list;
 
+#if 0
 	/*
 	 * start with graph of size 8
 	 */
@@ -184,6 +175,14 @@ main(int argc,char *argv[])
 	if(g == NULL) {
 		exit(1);
 	}
+#else
+	/*
+	 * start with pre-computed graph of size 50
+	 */
+	ReadGraph("../../counterexamples/n50.txt", &g, &gsize);
+	printf("testando %d\n", gsize);
+
+#endif
 
 	/*
 	 * make a fifo to use as the taboo list
@@ -196,7 +195,7 @@ main(int argc,char *argv[])
 	/*
 	 * start out with all zeros
 	 */
-	memset(g,0,gsize*gsize*sizeof(int));
+	//memset(g,0,gsize*gsize*sizeof(int));
 
 	/*
 	 * while we do not have a publishable result
