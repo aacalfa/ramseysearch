@@ -77,8 +77,6 @@ int CliqueCount(int *g,
 	int m;
 	int n;
 	int o;
-	/* Start timing */
-	//time1 = omp_get_wtime();
 
 	int count=0;
 	int sgsize = 7;
@@ -142,12 +140,6 @@ int CliqueCount(int *g,
 			} /* end for 3 */
 		} /* end for 2 */
 	} /* end for 1 */
-#if 0
-	time2 = omp_get_wtime();
-	if (time2-time1 > 1)
-		printf("CliqueCount time: %g\n", time2 - time1);
-	time1 = time2;
-#endif
 	return(count);
 }
 
@@ -180,7 +172,6 @@ main(int argc,char *argv[])
 	 * start with pre-computed graph of size 50
 	 */
 	ReadGraph("../../counterexamples/n50.txt", &g, &gsize);
-	printf("testando %d\n", gsize);
 
 #endif
 
@@ -213,7 +204,11 @@ main(int argc,char *argv[])
 		if(count == 0)
 		{
 			printf("Eureka!  Counter-example found!\n");
-			PrintGraph(g,gsize);
+			//PrintGraph(g,gsize);
+
+			/* Save counterexample into a file */
+			SaveGraph(g,gsize);
+
 			/*
 			 * make a new graph one size bigger
 			 */

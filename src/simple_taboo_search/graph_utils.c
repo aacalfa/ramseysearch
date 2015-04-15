@@ -10,6 +10,38 @@
 /*
  * prints in the right format for the read routine
  */
+void SaveGraph(int *g, int gsize)
+{
+	int i;
+	int j;
+
+	char filename[10];
+	sprintf(filename, "n%d.txt", gsize);
+	FILE *f = fopen(filename, "w");
+	if (f == NULL)
+	{
+	    printf("Error opening file!\n");
+	    exit(1);
+	}
+	
+	fprintf(f,"%d\n",gsize);
+
+	for(i=0; i < gsize; i++)
+	{
+		for(j=0; j < gsize; j++)
+		{
+			fprintf(f,"%d ",g[i*gsize+j]);
+		}
+		fprintf(f,"\n");
+	}
+
+	fclose(f);
+	return;
+}
+
+/*
+ * prints in the right format for the read routine
+ */
 void PrintGraph(int *g, int gsize)
 {
 	int i;
