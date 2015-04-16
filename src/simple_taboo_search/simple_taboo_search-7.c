@@ -191,7 +191,7 @@ main(int argc,char *argv[])
 	/*
 	 * while we do not have a publishable result
 	 */
-	while(gsize < 102)
+	while(gsize < 206)
 	{
 		/*
 		 * find out how we are doing
@@ -226,8 +226,14 @@ main(int argc,char *argv[])
 			 */
 			for(i=0; i < (gsize+1); i++)
 			{
-				new_g[i*(gsize+1) + gsize] = 0; // last column
-				new_g[gsize*(gsize+1) + i] = 0; // last row
+			 /* Last row and column will have a balanced number of 0s and 1s */
+				if(drand48() > 0.5) {
+					new_g[i*(gsize+1) + gsize] = 1; // last column
+					new_g[gsize*(gsize+1) + i] = 1; // last row
+				} else {
+					new_g[i*(gsize+1) + gsize] = 0; // last column
+					new_g[gsize*(gsize+1) + i] = 0; // last row
+				}
 			}
 
 			/*
@@ -273,9 +279,13 @@ main(int argc,char *argv[])
 				/*
 				 * is it better and the i,j,count not taboo?
 				 */
+#ifdef EDGEONLY
 				if((count < best_count) && 
 					!FIFOFindEdge(taboo_list,i,j))
-//					!FIFOFindEdgeCount(taboo_list,i,j,count))
+#else
+				if((count < best_count) && 
+					!FIFOFindEdgeCount(taboo_list,i,j,count))
+#endif
 				{
 					best_count = count;
 					best_i = i;
@@ -304,8 +314,11 @@ main(int argc,char *argv[])
 		 * it again
 		 */
 		count = CliqueCount(g,gsize);
+#ifdef EDGEONLY
 		FIFOInsertEdge(taboo_list,best_i,best_j);
-//		FIFOInsertEdgeCount(taboo_list,best_i,best_j,count);
+#else
+		FIFOInsertEdgeCount(taboo_list,best_i,best_j,count);
+#endif
 
 		printf("ce size: %d, best_count: %d, best edge: (%d,%d), new color: %d\n",
 			gsize,
