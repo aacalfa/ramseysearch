@@ -8,6 +8,27 @@
 #define MAXSIZE (541)
 
 /*
+ * Calculates how many green and red edges in the
+ * given graph
+ */
+void GetNumEdgeColors(int *g, int gsize, int *red, int*green)
+{
+	int i, j;
+	for(i=0; i < gsize - 1; i++)
+	{
+		for(j=i+1; j < gsize; j++)
+		{
+			int color = g[i*gsize+j];
+			if(color == 0)
+				(*red)++;
+			else
+				(*green)++;
+		}
+	}
+}
+
+
+ /*
  * prints in the right format for the read routine
  */
 void SaveGraph(int *g, int gsize)
@@ -15,8 +36,8 @@ void SaveGraph(int *g, int gsize)
 	int i;
 	int j;
 
-	char filename[10];
-	sprintf(filename, "n%d.txt", gsize);
+	char filename[30];
+	sprintf(filename, "../../counterexamples/n%d.txt", gsize);
 	FILE *f = fopen(filename, "w");
 	if (f == NULL)
 	{

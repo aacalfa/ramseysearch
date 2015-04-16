@@ -11,6 +11,7 @@
 
 char Fname[255];
 
+
 int
 main(int argc,char *argv[])
 {
@@ -59,6 +60,11 @@ main(int argc,char *argv[])
 			gsize,
 			count);
 	}
+
+	/* Retrieve number of green and red edges */
+	int red,green;
+	GetNumEdgeColors(g,gsize,&red,&green);
+	fprintf(stdout, "Red edges: %d, green edges: %d\n", red, green);
 
 	free(g);
 	return(0);

@@ -60,12 +60,12 @@ int FIFOCount(void *in_f)
 void
 FIFODelete(void *in_f)
 {
-        FIFO_t *f = (void *)in_f;
-        jrb_free_tree(f->findex);
-        free_dllist(f->fifo);
-        free(f);
-
-        return;
+	FIFO_t *f = (void *)in_f;
+	jrb_free_tree(f->findex);
+	free_dllist(f->fifo);
+	free(f);
+	
+	return;
 }
 
 
@@ -210,8 +210,8 @@ int MakeGraphKey(int *s, int gsize, char **key)
 		else
 		{
 			/*
-		 	 * shift it over
-		 	 */
+			 * shift it over
+			 */
 			Mask[index] = Mask[index] << 1;
 		}
 	}
@@ -478,8 +478,8 @@ FIFOInsertEdgeCount(void *in_f, int i, int j, int count)
 	dll_append(f->fifo,new_jval_d(key));
 
 	/*
- 	 * stick the new key in the index
- 	 */
+	 * stick the new key in the index
+	 */
 	jnode = jrb_insert_dbl(f->findex,key,new_jval_v(NULL));
 
 
@@ -512,3 +512,4 @@ int FIFOFindEdgeCount(void *in_f, int i, int j, int count)
 		return(1);
 	}
 }
+

@@ -158,7 +158,7 @@ main(int argc,char *argv[])
 	int best_j;
 	void *taboo_list;
 
-#if 0
+#if 1
 	/*
 	 * start with graph of size 8
 	 */
@@ -171,7 +171,8 @@ main(int argc,char *argv[])
 	/*
 	 * start with pre-computed graph of size 50
 	 */
-	ReadGraph("../../counterexamples/n50.txt", &g, &gsize);
+	//ReadGraph("../../counterexamples/n50.txt", &g, &gsize);
+	ReadGraph("n51.txt", &g, &gsize);
 
 #endif
 
@@ -186,7 +187,7 @@ main(int argc,char *argv[])
 	/*
 	 * start out with all zeros
 	 */
-	//memset(g,0,gsize*gsize*sizeof(int));
+	memset(g,0,gsize*gsize*sizeof(int));
 
 	/*
 	 * while we do not have a publishable result
