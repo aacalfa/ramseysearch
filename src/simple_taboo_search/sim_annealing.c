@@ -1,153 +1,54 @@
-#include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
-#include <errno.h>
-#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <math.h>
+#include <limits.h>
 
-#include "omp.h"
 #include "fifo.h" /* for taboo list */
 #include "graph_utils.h" /* for ReadGraph */
-
-#define EDGEONLY
-
-#define MAXSIZE (541)
 
 #define TABOOSIZE (500)
 #define BIGCOUNT (9999999)
 
+/* TODO: In order to apply the SA method to a specific problem, one must specify the following parameters: the state space, the energy (goal) function E(), the candidate generator procedure neighbour(), the acceptance probability function P(), and the annealing schedule temperature() AND initial temperature <init temp>.
+*/
 
-//double time1, time2; // Timing variables
-
-/***
- *** example of very simple search for R(7,7) counter examples
- ***
- *** starts with a small randomized graph and works its way up to successively
- *** larger graphs one at a time
- ***
- *** uses a taboo list of size #TABOOSIZE# to hold and encoding of and edge
- *** (i,j)+clique_count
- ***/
+/* State structure
+ */
+typedef struct state {
+	int noCliques;
+	double colorRate;
+} State;
 
 /*
- * CopyGraph 
+ * Goal: noCliques must be equal to zero
+ *       and colorRate must be close to 0.5
+ */
+double Energy(State *s) {
+}
+
+/* Acceptance Probability Function
  *
- * copys the contents of old_g to corresponding locations in new_g
- * leaving other locations in new_g alone
- * that is
- * new_g[i,j] = old_g[i,j]
  */
-void CopyGraph(int *old_g, int o_gsize, int *new_g, int n_gsize)
-{
-	int i;
-	int j;
+double AcceptProb(double energy, double new_energy, double temperature) {
+	if( new_energy < energy )
+		return 1.0;
 
-	/*
-	 * new g must be bigger
-	 */
-	if(n_gsize < o_gsize)
-		return;
-
-	for(i=0; i < o_gsize; i++)
-	{
-		for(j=0; j < o_gsize; j++)
-		{
-			new_g[i*n_gsize+j] = old_g[i*o_gsize+j];
-		}
-	}
-
-	return;
+	return exp(energy - new_energy)/temperature;
 }
 
-
-/*
- ***
- *** returns the number of monochromatic cliques in the graph presented to
- *** it
- ***
- *** graph is stored in row-major order
- *** only checks values above diagonal
- */
-
-int CliqueCount(int *g,
-	     int gsize)
+int RandRange(int Min, int Max)
 {
-	int i;
-	int j;
-	int k;
-	int l;
-	int m;
-	int n;
-	int o;
-
-	int count=0;
-	int sgsize = 7;
-	
-	for(i=0;i < gsize-sgsize+1; i++)
-	{
-		for(j=i+1;j < gsize-sgsize+2; j++)
-		{
-			for(k=j+1;k < gsize-sgsize+3; k++) 
-			{ 
-				if((g[i*gsize+j] == g[i*gsize+k]) && 
-				   (g[i*gsize+j] == g[j*gsize+k]))
-				{
-					for(l=k+1;l < gsize-sgsize+4; l++) 
-					{ 
-						if((g[i*gsize+j] == g[i*gsize+l]) && 
-					   (g[i*gsize+j] == g[j*gsize+l]) && 
-					   (g[i*gsize+j] == g[k*gsize+l]))
-						{
-							for(m=l+1;m < gsize-sgsize+5; m++) 
-							{
-								if((g[i*gsize+j] == g[i*gsize+m]) && 
-							   (g[i*gsize+j] == g[j*gsize+m]) &&
-							   (g[i*gsize+j] == g[k*gsize+m]) && 
-							   (g[i*gsize+j] == g[l*gsize+m])) {
-									for(n=m+1; n < gsize-sgsize+6; n++)
-									{
-										if((g[i*gsize+j]
-											== g[i*gsize+n]) &&
-										   (g[i*gsize+j] 
-											== g[j*gsize+n]) &&
-										   (g[i*gsize+j] 
-											== g[k*gsize+n]) &&
-										   (g[i*gsize+j] 
-											== g[l*gsize+n]) &&
-										   (g[i*gsize+j] 
-											== g[m*gsize+n])) {
-											for(o=n+1; o < gsize-sgsize+7; o++) {
-												if((g[i*gsize+j]
-												  == g[i*gsize+o]) &&
-												  (g[i*gsize+j] 
-												  == g[j*gsize+o]) &&
-												   (g[i*gsize+j] 
-												  == g[k*gsize+o]) &&
-												   (g[i*gsize+j] 
-												  == g[l*gsize+o]) &&
-												  (g[i*gsize+j] 
-												  == g[m*gsize+o]) &&
-												  (g[i*gsize+j] == 
-												  g[n*gsize+o])) {
-													count++;
-												}
-											} /* end for 7 */
-										}
-									} /* end for 6 */
-								}
-							} /* end for 5 */
-						}
-					} /* end for 4 */
-				}
-			} /* end for 3 */
-		} /* end for 2 */
-	} /* end for 1 */
-	return(count);
+    int diff = Max-Min;
+    return (int) (((double)(diff+1)/RAND_MAX) * rand() + Min);
 }
 
-
-int
-main(int argc,char *argv[])
+int main()
 {
+	time_t systime;
+	time(&systime);
+	srand((unsigned int)systime);
+
 	int *g;
 	int *new_g;
 	int gsize;
@@ -159,7 +60,6 @@ main(int argc,char *argv[])
 	int best_j;
 	void *taboo_list;
 
-#if 1
 	/*
 	 * start with graph of size 8
 	 */
@@ -168,14 +68,6 @@ main(int argc,char *argv[])
 	if(g == NULL) {
 		exit(1);
 	}
-#else
-	/*
-	 * start with pre-computed graph of size 50
-	 */
-	//ReadGraph("../../counterexamples/n50.txt", &g, &gsize);
-	ReadGraph("n51.txt", &g, &gsize);
-
-#endif
 
 	/*
 	 * make a fifo to use as the taboo list
@@ -190,9 +82,11 @@ main(int argc,char *argv[])
 	 */
 	memset(g,0,gsize*gsize*sizeof(int));
 
-	/*
-	 * while we do not have a publishable result
-	 */
+	/* Initialize state structure */
+	State *engy = (State*) malloc(sizeof(State));
+	engy->noCliques = INT_MAX;
+	engy->colorRate = 1.0;
+
 	while(gsize < 206)
 	{
 		/*
@@ -268,6 +162,25 @@ main(int argc,char *argv[])
 		 * notice the indices
 		 */
 		best_count = BIGCOUNT;
+		double Tred = 0.9; // Reduction factor used for the cooling schedule of the temperature 
+
+		for (double T = 80; T > 0.00008; T *= alpha) //T = T * Tred which is used as a cooling schedule 
+		{
+			for (int itr = 0; itr<200; itr++) //This loop is for the process of iteration (or searching for new states)
+			{
+				/* Randomly pick an edge */
+				int i = RandRange(0, gsize-1);
+				int j = RandRange(i+1, gsize-1);
+
+				/*
+				 * flip it
+				 */
+				g[i*gsize+j] = 1 - g[i*gsize+j];
+				count = CliqueCount(g,gsize);
+			}
+		}
+
+#if 0
 		for(i=0; i < gsize; i++)
 		{
 			for(j=i+1; j < gsize; j++)
@@ -332,11 +245,11 @@ main(int argc,char *argv[])
 		/*
 		 * rinse and repeat
 		 */
+#endif
 	}
 
 	FIFODeleteGraph(taboo_list);
 
 
 	return(0);
-
 }
