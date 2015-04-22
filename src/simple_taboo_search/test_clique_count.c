@@ -62,7 +62,8 @@ main(int argc,char *argv[])
 	}
 
 	/* Retrieve number of green and red edges */
-	int red,green;
+	int red = 0;
+	int green = 0;
 	GetNumEdgeColors(g,gsize,&red,&green);
 	fprintf(stdout, "Red edges: %d, green edges: %d\n", red, green);
 
