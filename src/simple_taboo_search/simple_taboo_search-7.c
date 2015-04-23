@@ -151,7 +151,7 @@ main(int argc,char *argv[])
 		 * notice the indices
 		 */
 		best_count = BIGCOUNT;
-#pragma omp parallel for private(i,j,count) shared(taboo_list,best_count,best_i,best_j)
+//#pragma omp parallel for private(i,j,count) shared(taboo_list,best_count,best_i,best_j)
 		for(i=0; i < gsize; i++)
 		{
 			for(j=i+1; j < gsize; j++)
