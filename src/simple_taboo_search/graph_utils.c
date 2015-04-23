@@ -27,6 +27,35 @@ void GetNumEdgeColors(int *g, int gsize, int *red, int*green)
 	}
 }
 
+/*
+ * CopyGraph 
+ *
+ * copys the contents of old_g to corresponding locations in new_g
+ * leaving other locations in new_g alone
+ * that is
+ * new_g[i,j] = old_g[i,j]
+ */
+void CopyGraph(int *old_g, int o_gsize, int *new_g, int n_gsize)
+{
+	int i;
+	int j;
+
+	/*
+	 * new g must be bigger
+	 */
+	if(n_gsize < o_gsize)
+		return;
+
+	for(i=0; i < o_gsize; i++)
+	{
+		for(j=0; j < o_gsize; j++)
+		{
+			new_g[i*n_gsize+j] = old_g[i*o_gsize+j];
+		}
+	}
+
+	return;
+}
 
  /*
  * prints in the right format for the read routine

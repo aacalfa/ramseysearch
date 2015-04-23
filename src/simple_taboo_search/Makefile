@@ -7,19 +7,19 @@ COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 INCL=./jrb.h ./jval.h ./dllist.h ./fifo.h
 COMMON=.
 PRED=.
-BOBJ=$(COMMON)/jval.o $(COMMON)/jrb.o $(COMMON)/dllist.o $(COMMON)/fifo.o $(COMMON)/graph_utils.o
+BOBJ=$(COMMON)/jval.o $(COMMON)/jrb.o $(COMMON)/dllist.o $(COMMON)/fifo.o $(COMMON)/graph_utils.o $(COMMON)/clique_count.o
 LIBS= -lm 
 
-PROGRAMS = simple_taboo_search-7 test_clique_count
-#PROGRAMS = simple_taboo_search-7 test_clique_count sim_annealing
+#PROGRAMS = simple_taboo_search-7 test_clique_count
+PROGRAMS = simple_taboo_search-7 test_clique_count sim_annealing
 
 all: $(PROGRAMS)
 
 simple_taboo_search-7: simple_taboo_search-7.c $(INCL) ${BOBJ}
 	$(COMPILE) ${INCLUDES} -o simple_taboo_search-7 simple_taboo_search-7.c $(BOBJ) $(LIBS)
 
-test_clique_count: test_clique_count.c graph_utils.h clique_count.o clique_count.h $(INCL) ${BOBJ}
-	$(COMPILE) ${INCLUDES} -o test_clique_count test_clique_count.c clique_count.o $(BOBJ) $(LIBS)
+test_clique_count: test_clique_count.c graph_utils.h $(INCL) ${BOBJ}
+	$(COMPILE) ${INCLUDES} -o test_clique_count test_clique_count.c $(BOBJ) $(LIBS)
 
 sim_annealing: sim_annealing.c $(INCL) ${BOBJ}
 	$(COMPILE) ${INCLUDES} -o sim_annealing sim_annealing.c $(BOBJ) $(LIBS)

@@ -12,7 +12,7 @@
 
 #define MAXSIZE (541)
 
-#define TABOOSIZE (500)
+#define TABOOSIZE (5000)
 #define BIGCOUNT (9999999)
 
 
@@ -27,123 +27,6 @@
  *** uses a taboo list of size #TABOOSIZE# to hold and encoding of and edge
  *** (i,j)+clique_count
  ***/
-
-/*
- * CopyGraph 
- *
- * copys the contents of old_g to corresponding locations in new_g
- * leaving other locations in new_g alone
- * that is
- * new_g[i,j] = old_g[i,j]
- */
-void CopyGraph(int *old_g, int o_gsize, int *new_g, int n_gsize)
-{
-	int i;
-	int j;
-
-	/*
-	 * new g must be bigger
-	 */
-	if(n_gsize < o_gsize)
-		return;
-
-	for(i=0; i < o_gsize; i++)
-	{
-		for(j=0; j < o_gsize; j++)
-		{
-			new_g[i*n_gsize+j] = old_g[i*o_gsize+j];
-		}
-	}
-
-	return;
-}
-
-
-/*
- ***
- *** returns the number of monochromatic cliques in the graph presented to
- *** it
- ***
- *** graph is stored in row-major order
- *** only checks values above diagonal
- */
-
-int CliqueCount(int *g,
-	     int gsize)
-{
-	int i;
-	int j;
-	int k;
-	int l;
-	int m;
-	int n;
-	int o;
-
-	int count=0;
-	int sgsize = 7;
-	
-	for(i=0;i < gsize-sgsize+1; i++)
-	{
-		for(j=i+1;j < gsize-sgsize+2; j++)
-		{
-			for(k=j+1;k < gsize-sgsize+3; k++) 
-			{ 
-				if((g[i*gsize+j] == g[i*gsize+k]) && 
-				   (g[i*gsize+j] == g[j*gsize+k]))
-				{
-					for(l=k+1;l < gsize-sgsize+4; l++) 
-					{ 
-						if((g[i*gsize+j] == g[i*gsize+l]) && 
-					   (g[i*gsize+j] == g[j*gsize+l]) && 
-					   (g[i*gsize+j] == g[k*gsize+l]))
-						{
-							for(m=l+1;m < gsize-sgsize+5; m++) 
-							{
-								if((g[i*gsize+j] == g[i*gsize+m]) && 
-							   (g[i*gsize+j] == g[j*gsize+m]) &&
-							   (g[i*gsize+j] == g[k*gsize+m]) && 
-							   (g[i*gsize+j] == g[l*gsize+m])) {
-									for(n=m+1; n < gsize-sgsize+6; n++)
-									{
-										if((g[i*gsize+j]
-											== g[i*gsize+n]) &&
-										   (g[i*gsize+j] 
-											== g[j*gsize+n]) &&
-										   (g[i*gsize+j] 
-											== g[k*gsize+n]) &&
-										   (g[i*gsize+j] 
-											== g[l*gsize+n]) &&
-										   (g[i*gsize+j] 
-											== g[m*gsize+n])) {
-											for(o=n+1; o < gsize-sgsize+7; o++) {
-												if((g[i*gsize+j]
-												  == g[i*gsize+o]) &&
-												  (g[i*gsize+j] 
-												  == g[j*gsize+o]) &&
-												   (g[i*gsize+j] 
-												  == g[k*gsize+o]) &&
-												   (g[i*gsize+j] 
-												  == g[l*gsize+o]) &&
-												  (g[i*gsize+j] 
-												  == g[m*gsize+o]) &&
-												  (g[i*gsize+j] == 
-												  g[n*gsize+o])) {
-													count++;
-												}
-											} /* end for 7 */
-										}
-									} /* end for 6 */
-								}
-							} /* end for 5 */
-						}
-					} /* end for 4 */
-				}
-			} /* end for 3 */
-		} /* end for 2 */
-	} /* end for 1 */
-	return(count);
-}
-
 
 int
 main(int argc,char *argv[])
@@ -173,7 +56,7 @@ main(int argc,char *argv[])
 	 * start with pre-computed graph of size 50
 	 */
 	//ReadGraph("../../counterexamples/n50.txt", &g, &gsize);
-	ReadGraph("n51.txt", &g, &gsize);
+	ReadGraph("test109.txt", &g, &gsize);
 
 #endif
 
@@ -205,7 +88,7 @@ main(int argc,char *argv[])
 		 */
 		if(count == 0)
 		{
-			printf("Eureka!  Counter-example found!\n");
+			printf("Eureka!  Counter-example found! Number of nodes: %d\n", gsize);
 			//PrintGraph(g,gsize);
 
 			/* Save counterexample into a file */
@@ -268,6 +151,7 @@ main(int argc,char *argv[])
 		 * notice the indices
 		 */
 		best_count = BIGCOUNT;
+#pragma omp parallel for private(i,j,count) shared(taboo_list,best_count,best_i,best_j)
 		for(i=0; i < gsize; i++)
 		{
 			for(j=i+1; j < gsize; j++)

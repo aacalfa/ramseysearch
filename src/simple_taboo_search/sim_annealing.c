@@ -3,9 +3,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+#include <string.h>
 
 #include "fifo.h" /* for taboo list */
 #include "graph_utils.h" /* for ReadGraph */
+#include "clique_count.h"
 
 #define TABOOSIZE (500)
 #define BIGCOUNT (9999999)
@@ -52,7 +54,7 @@ int main()
 	int *g;
 	int *new_g;
 	int gsize;
-	int count;
+	unsigned long int count;
 	int i;
 	int j;
 	int best_count;
@@ -163,22 +165,59 @@ int main()
 		 */
 		best_count = BIGCOUNT;
 		double Tred = 0.9; // Reduction factor used for the cooling schedule of the temperature 
-
-		for (double T = 80; T > 0.00008; T *= alpha) //T = T * Tred which is used as a cooling schedule 
+#define N_ITR 1E6
+		int itr = 0;
+		double T = 80;
+		double Tmin = 0.00008;
+		do
 		{
-			for (int itr = 0; itr<200; itr++) //This loop is for the process of iteration (or searching for new states)
+			while((itr < N_ITR) && best_count > 0)
 			{
 				/* Randomly pick an edge */
 				int i = RandRange(0, gsize-1);
 				int j = RandRange(i+1, gsize-1);
+				printf("i = %d, j = %d", i, j);
+				sleep(1);
+#ifdef EDGEONLY
+				if(FIFOFindEdge(taboo_list,i,j))
+#else
+				if(FIFOFindEdgeCount(taboo_list,i,j,best_count))
+#endif
+				{
+					 continue;
+				}
 
 				/*
 				 * flip it
 				 */
 				g[i*gsize+j] = 1 - g[i*gsize+j];
-				count = CliqueCount(g,gsize);
+				unsigned long int curr_count = CliqueCount(g,gsize);
+				printf("curr_count: %lu\n", curr_count);
+				double delta = curr_count - best_count; 
+
+				/*
+				 * flip it back
+				 */
+				g[i*gsize+j] = 1 - g[i*gsize+j];
+
+				itr++;
+
+				double rand = RandRange(0,1.0);
+				if((delta <= 0 || rand < exp(-delta/(7*T)))) {
+					/*
+					 * flip it
+					 */
+					g[i*gsize+j] = 1 - g[i*gsize+j];
+					best_count = curr_count;
+#ifdef EDGEONLY
+					FIFOInsertEdge(taboo_list,i,j);
+#else
+					FIFOInsertEdgeCount(taboo_list,i,j,best_count);
+#endif
+				}
 			}
-		}
+			T *= Tred;
+		}while(best_count > 0 || T > Tmin);
 
 #if 0
 		for(i=0; i < gsize; i++)

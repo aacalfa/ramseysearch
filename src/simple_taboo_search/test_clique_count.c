@@ -18,7 +18,7 @@ main(int argc,char *argv[])
 	char c;
 	int *g;
 	int gsize;
-	int count;
+	unsigned long int count;
 
 	while((c = getopt(argc,argv,ARGS)) != EOF)
 	{
@@ -55,7 +55,7 @@ main(int argc,char *argv[])
 	else
 	{
 		fprintf(stdout,
-	"file %s contains a graph of size %d with %d monochromatic cliques\n",
+	"file %s contains a graph of size %d with %lu monochromatic cliques\n",
 			Fname,
 			gsize,
 			count);

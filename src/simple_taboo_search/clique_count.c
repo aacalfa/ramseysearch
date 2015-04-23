@@ -21,7 +21,7 @@
  *** only checks values above diagonal
  */
 
-int CliqueCount(int *g,
+unsigned long int CliqueCount(int *g,
 	     int gsize)
 {
     int i;
@@ -31,7 +31,7 @@ int CliqueCount(int *g,
     int m;
     int n;
     int o;
-    int count=0;
+    unsigned long int count=0;
     
     for(i=0;i < gsize-sgsize+1; i++)
     {
