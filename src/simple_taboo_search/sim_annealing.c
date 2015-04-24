@@ -12,33 +12,6 @@
 #define TABOOSIZE (500)
 #define BIGCOUNT (9999999)
 
-/* TODO: In order to apply the SA method to a specific problem, one must specify the following parameters: the state space, the energy (goal) function E(), the candidate generator procedure neighbour(), the acceptance probability function P(), and the annealing schedule temperature() AND initial temperature <init temp>.
-*/
-
-/* State structure
- */
-typedef struct state {
-	int noCliques;
-	double colorRate;
-} State;
-
-/*
- * Goal: noCliques must be equal to zero
- *       and colorRate must be close to 0.5
- */
-double Energy(State *s) {
-}
-
-/* Acceptance Probability Function
- *
- */
-double AcceptProb(double energy, double new_energy, double temperature) {
-	if( new_energy < energy )
-		return 1.0;
-
-	return exp(energy - new_energy)/temperature;
-}
-
 int RandRange(int Min, int Max)
 {
     int diff = Max-Min;
@@ -84,17 +57,13 @@ int main()
 	 */
 	memset(g,0,gsize*gsize*sizeof(int));
 
-	/* Initialize state structure */
-	State *engy = (State*) malloc(sizeof(State));
-	engy->noCliques = INT_MAX;
-	engy->colorRate = 1.0;
-
 	while(gsize < 206)
 	{
 		/*
 		 * find out how we are doing
 		 */
 		count = CliqueCount(g,gsize);
+		printf("%d\n", count);
 
 		/*
 		 * if we have a counter example
@@ -165,10 +134,10 @@ int main()
 		 */
 		best_count = BIGCOUNT;
 		double Tred = 0.9; // Reduction factor used for the cooling schedule of the temperature 
-#define N_ITR 1E6
+#define N_ITR 1E3
 		int itr = 0;
-		double T = 80;
-		double Tmin = 0.00008;
+		double T = 200;
+		double Tmin = 0.008;
 		do
 		{
 			while((itr < N_ITR) && best_count > 0)
@@ -176,23 +145,22 @@ int main()
 				/* Randomly pick an edge */
 				int i = RandRange(0, gsize-1);
 				int j = RandRange(i+1, gsize-1);
-				printf("i = %d, j = %d", i, j);
-				sleep(1);
-#ifdef EDGEONLY
-				if(FIFOFindEdge(taboo_list,i,j))
-#else
-				if(FIFOFindEdgeCount(taboo_list,i,j,best_count))
-#endif
-				{
-					 continue;
-				}
+				//printf("i = %d, j = %d", i, j);
+				//sleep(1);
+//#ifdef EDGEONLY
+//				if(FIFOFindEdge(taboo_list,i,j))
+//#else
+//				if(FIFOFindEdgeCount(taboo_list,i,j,best_count))
+//#endif
+//				{
+//					 continue;
+//				}
 
 				/*
 				 * flip it
 				 */
 				g[i*gsize+j] = 1 - g[i*gsize+j];
 				unsigned long int curr_count = CliqueCount(g,gsize);
-				printf("curr_count: %lu\n", curr_count);
 				double delta = curr_count - best_count; 
 
 				/*
@@ -207,84 +175,19 @@ int main()
 					/*
 					 * flip it
 					 */
+					puts("test");
 					g[i*gsize+j] = 1 - g[i*gsize+j];
 					best_count = curr_count;
-#ifdef EDGEONLY
-					FIFOInsertEdge(taboo_list,i,j);
-#else
-					FIFOInsertEdgeCount(taboo_list,i,j,best_count);
-#endif
+//#ifdef EDGEONLY
+//					FIFOInsertEdge(taboo_list,i,j);
+//#else
+//					FIFOInsertEdgeCount(taboo_list,i,j,best_count);
+//#endif
 				}
 			}
 			T *= Tred;
-		}while(best_count > 0 || T > Tmin);
+		}while(best_count > 0 && T > Tmin);
 
-#if 0
-		for(i=0; i < gsize; i++)
-		{
-			for(j=i+1; j < gsize; j++)
-			{
-				/*
-				 * flip it
-				 */
-				g[i*gsize+j] = 1 - g[i*gsize+j];
-				count = CliqueCount(g,gsize);
-
-				/*
-				 * is it better and the i,j,count not taboo?
-				 */
-#ifdef EDGEONLY
-				if((count < best_count) && 
-					!FIFOFindEdge(taboo_list,i,j))
-#else
-				if((count < best_count) && 
-					!FIFOFindEdgeCount(taboo_list,i,j,count))
-#endif
-				{
-					best_count = count;
-					best_i = i;
-					best_j = j;
-				}
-
-				/*
-				 * flip it back
-				 */
-				g[i*gsize+j] = 1 - g[i*gsize+j];
-			}
-		}
-
-		if(best_count == BIGCOUNT) {
-			printf("no best edge found, terminating\n");
-			exit(1);
-		}
-		
-		/*
-		 * keep the best flip we saw
-		 */
-		g[best_i*gsize+best_j] = 1 - g[best_i*gsize+best_j];
-
-		/*
-		 * taboo this graph configuration so that we don't visit
-		 * it again
-		 */
-		count = CliqueCount(g,gsize);
-#ifdef EDGEONLY
-		FIFOInsertEdge(taboo_list,best_i,best_j);
-#else
-		FIFOInsertEdgeCount(taboo_list,best_i,best_j,count);
-#endif
-
-		printf("ce size: %d, best_count: %d, best edge: (%d,%d), new color: %d\n",
-			gsize,
-			best_count,
-			best_i,
-			best_j,
-			g[best_i*gsize+best_j]);
-
-		/*
-		 * rinse and repeat
-		 */
-#endif
 	}
 
 	FIFODeleteGraph(taboo_list);
