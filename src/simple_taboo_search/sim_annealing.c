@@ -18,6 +18,12 @@ int RandRange(int Min, int Max)
     return (int) (((double)(diff+1)/RAND_MAX) * rand() + Min);
 }
 
+double fRandRange(double fMin, double fMax)
+{
+    double f = (double)rand() / RAND_MAX;
+    return fMin + f * (fMax - fMin);
+}
+
 int main()
 {
 	time_t systime;
@@ -63,14 +69,13 @@ int main()
 		 * find out how we are doing
 		 */
 		count = CliqueCount(g,gsize);
-		printf("%d\n", count);
 
 		/*
 		 * if we have a counter example
 		 */
 		if(count == 0)
 		{
-			printf("Eureka!  Counter-example found!\n");
+			printf("Eureka!  Counter-example found! Number of nodes: %d\n", gsize);
 			//PrintGraph(g,gsize);
 
 			/* Save counterexample into a file */
@@ -136,7 +141,7 @@ int main()
 		double Tred = 0.9; // Reduction factor used for the cooling schedule of the temperature 
 #define N_ITR 1E3
 		int itr = 0;
-		double T = 200;
+		double T = 200.0;
 		double Tmin = 0.008;
 		do
 		{
@@ -145,48 +150,53 @@ int main()
 				/* Randomly pick an edge */
 				int i = RandRange(0, gsize-1);
 				int j = RandRange(i+1, gsize-1);
-				//printf("i = %d, j = %d", i, j);
-				//sleep(1);
-//#ifdef EDGEONLY
-//				if(FIFOFindEdge(taboo_list,i,j))
-//#else
-//				if(FIFOFindEdgeCount(taboo_list,i,j,best_count))
-//#endif
-//				{
-//					 continue;
-//				}
+				itr++;
+#ifdef EDGEONLY
+				if(FIFOFindEdge(taboo_list,i,j))
+#else
+				if(FIFOFindEdgeCount(taboo_list,i,j,best_count))
+#endif
+				{
+					 continue;
+				}
 
 				/*
 				 * flip it
 				 */
 				g[i*gsize+j] = 1 - g[i*gsize+j];
 				unsigned long int curr_count = CliqueCount(g,gsize);
-				double delta = curr_count - best_count; 
+				int delta = curr_count - best_count; 
 
 				/*
 				 * flip it back
 				 */
 				g[i*gsize+j] = 1 - g[i*gsize+j];
 
-				itr++;
 
-				double rand = RandRange(0,1.0);
-				if((delta <= 0 || rand < exp(-delta/(7*T)))) {
+				double rand = fRandRange(0,1.0);
+				if((delta <= 0 || rand < exp(-delta/(7.0*T)))) {
 					/*
 					 * flip it
 					 */
-					puts("test");
 					g[i*gsize+j] = 1 - g[i*gsize+j];
 					best_count = curr_count;
-//#ifdef EDGEONLY
-//					FIFOInsertEdge(taboo_list,i,j);
-//#else
-//					FIFOInsertEdgeCount(taboo_list,i,j,best_count);
-//#endif
+					best_i = i;
+					best_j = j;
+#ifdef EDGEONLY
+					FIFOInsertEdge(taboo_list,i,j);
+#else
+					FIFOInsertEdgeCount(taboo_list,i,j,best_count);
+#endif
 				}
 			}
 			T *= Tred;
 		}while(best_count > 0 && T > Tmin);
+		printf("ce size: %d, best_count: %d, best edge: (%d,%d), new color: %d\n",
+			gsize,
+			best_count,
+			best_i,
+			best_j,
+			g[best_i*gsize+best_j]);
 
 	}
 
