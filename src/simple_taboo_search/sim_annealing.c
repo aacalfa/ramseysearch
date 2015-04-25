@@ -127,15 +127,10 @@ int main()
 			continue;
 		}
 
-		/*
-		 * otherwise, we need to consider flipping an edge
-		 *
-		 * let's speculative flip each edge, record the new count,
-		 * and unflip the edge.  We'll then remember the best flip and
-		 * keep it next time around
-		 *
-		 * only need to work with upper triangle of matrix =>
-		 * notice the indices
+		/* Perform the simulated annealing algorithm.
+		 * An edge is randomly picked from the graph and its color is flipped.
+		 * If this was a good move or the acceptance probability function is met,
+		 * keep this move. Otherwise, flip it back.
 		 */
 		best_count = BIGCOUNT;
 		double Tred = 0.9; // Reduction factor used for the cooling schedule of the temperature 
@@ -168,7 +163,7 @@ int main()
 				int delta = curr_count - best_count; 
 
 				/*
-				 * flip it back
+				 * flip it back to original value
 				 */
 				g[i*gsize+j] = 1 - g[i*gsize+j];
 
@@ -176,7 +171,7 @@ int main()
 				double rand = fRandRange(0,1.0);
 				if((delta <= 0 || rand < exp(-delta/(7.0*T)))) {
 					/*
-					 * flip it
+					 * Good move, flip it again.
 					 */
 					g[i*gsize+j] = 1 - g[i*gsize+j];
 					best_count = curr_count;
