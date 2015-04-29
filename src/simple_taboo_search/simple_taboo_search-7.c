@@ -195,19 +195,7 @@ main(int argc,char *argv[])
 			printf("no best edge found, terminating\n");
 			exit(1);
 		}
-
-		/* Update global best count  and save intermediate result in a file */
-		if(best_count <= globalBestCount) {
-			globalBestCount = best_count;
-			SaveGraph(g,gsize, "intermediate");
-		}
-		/* If best_count is increasing, it may mean that we reached a local minimum.
-		 * Keep track of how many times best_count increases in value
-		 */
-		else {
-			bcIncrease++;
-		}
-		
+	
 		/*
 		 * keep the best flip we saw
 		 */
@@ -231,6 +219,17 @@ main(int argc,char *argv[])
 			best_j,
 			g[best_i*gsize+best_j]);
 
+		/* Update global best count  and save intermediate result in a file */
+		if(best_count <= globalBestCount) {
+			globalBestCount = best_count;
+			SaveGraph(g,gsize, "intermediate");
+		}
+		/* If best_count is increasing, it may mean that we reached a local minimum.
+		 * Keep track of how many times best_count increases in value
+		 */
+		else {
+			bcIncrease++;
+		}
 		/*
 		 * rinse and repeat
 		 */
