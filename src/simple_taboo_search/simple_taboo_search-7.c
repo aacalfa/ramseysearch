@@ -15,9 +15,6 @@
 #define TABOOSIZE (5000)
 #define BIGCOUNT (9999999)
 
-
-//double time1, time2; // Timing variables
-
 /***
  *** example of very simple search for R(7,7) counter examples
  ***
@@ -42,7 +39,7 @@ main(int argc,char *argv[])
 	int best_j;
 	void *taboo_list;
 
-#if 1
+#if 0
 	/*
 	 * start with graph of size 8
 	 */
@@ -53,11 +50,9 @@ main(int argc,char *argv[])
 	}
 #else
 	/*
-	 * start with pre-computed graph of size 50
+	 * start with pre-computed graph of size 109
 	 */
-	//ReadGraph("../../counterexamples/n50.txt", &g, &gsize);
-	ReadGraph("test109.txt", &g, &gsize);
-
+	ReadGraph("../../counterexamples/n109.txt", &g, &gsize);
 #endif
 
 	/*
@@ -71,7 +66,7 @@ main(int argc,char *argv[])
 	/*
 	 * start out with all zeros
 	 */
-	memset(g,0,gsize*gsize*sizeof(int));
+	//memset(g,0,gsize*gsize*sizeof(int));
 
 	/*
 	 * while we do not have a publishable result
