@@ -41,6 +41,7 @@ int main()
 	int best_j;
 	void *taboo_list;
 
+#if 0
 	/*
 	 * start with graph of size 8
 	 */
@@ -49,6 +50,12 @@ int main()
 	if(g == NULL) {
 		exit(1);
 	}
+#else
+	/*
+	 * start with pre-computed graph of size 50
+	 */
+	ReadGraph("../../counterexamples/n109.txt", &g, &gsize);
+#endif
 
 	/*
 	 * make a fifo to use as the taboo list
@@ -61,7 +68,7 @@ int main()
 	/*
 	 * start out with all zeros
 	 */
-	memset(g,0,gsize*gsize*sizeof(int));
+	//memset(g,0,gsize*gsize*sizeof(int));
 
 	while(gsize < 206)
 	{
@@ -79,7 +86,7 @@ int main()
 			//PrintGraph(g,gsize);
 
 			/* Save counterexample into a file */
-			SaveGraph(g,gsize);
+			SaveGraph(g,gsize, "counterexamples");
 
 			/*
 			 * make a new graph one size bigger

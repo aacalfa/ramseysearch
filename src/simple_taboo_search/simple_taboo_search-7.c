@@ -12,7 +12,7 @@
 
 #define MAXSIZE (541)
 
-#define TABOOSIZE (5000)
+#define TABOOSIZE (500)
 #define BIGCOUNT (9999999)
 
 /***
@@ -38,6 +38,8 @@ main(int argc,char *argv[])
 	int best_i;
 	int best_j;
 	void *taboo_list;
+	int globalBestCount = BIGCOUNT;
+	int bcIncrease = 0;
 
 #if 0
 	/*
@@ -87,7 +89,7 @@ main(int argc,char *argv[])
 			//PrintGraph(g,gsize);
 
 			/* Save counterexample into a file */
-			SaveGraph(g,gsize);
+			SaveGraph(g,gsize, "counterexamples");
 
 			/*
 			 * make a new graph one size bigger
@@ -129,10 +131,19 @@ main(int argc,char *argv[])
 			 */
 			taboo_list = FIFOResetEdge(taboo_list);
 
+			/* Reset best_count increase count */
+			bcIncrease = 0;
 			/*
 			 * keep going
 			 */
 			continue;
+		}
+
+		/* If bcIncrease is greater than the taboo size, add some randomness in
+		 * edge flipping to get out of local minimum.
+		 */
+		if(bcIncrease > TABOOSIZE) {
+			//Randomize(&g, gsize);
 		}
 
 		/*
@@ -183,6 +194,18 @@ main(int argc,char *argv[])
 		if(best_count == BIGCOUNT) {
 			printf("no best edge found, terminating\n");
 			exit(1);
+		}
+
+		/* Update global best count  and save intermediate result in a file */
+		if(best_count <= globalBestCount) {
+			globalBestCount = best_count;
+			SaveGraph(g,gsize, "intermediate");
+		}
+		/* If best_count is increasing, it may mean that we reached a local minimum.
+		 * Keep track of how many times best_count increases in value
+		 */
+		else {
+			bcIncrease++;
 		}
 		
 		/*
