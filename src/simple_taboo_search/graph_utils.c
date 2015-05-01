@@ -8,6 +8,22 @@
 #define MAXSIZE (541)
 
 /*
+ * Converts a graph matrix from int to char
+ */
+char* GraphtoChar(int *g, int gsize)
+{
+	char graph[gsize];
+	int i, j;
+	for(i=0; i < gsize - 1; i++)
+	{
+		for(j=i+1; j < gsize; j++)
+		{
+			graph[i*gsize+j] = g[i*gsize+j]+ '0';
+		}
+	}
+}
+
+/*
  * Calculates how many green and red edges in the
  * given graph
  */
