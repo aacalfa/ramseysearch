@@ -6,6 +6,7 @@
  */
 
 #include "server.h"
+#include "graph_utils.h"
 int receiveservice(int newsockfd, char* result) {
 	char buffer[MATRIXMAXSIZE];
 	int n;
@@ -61,7 +62,8 @@ int receiveCounterExample(char* matrix) {
 		if (pid == 0)  {
              		close(sockfd);
              		receiveservice(newsockfd, matrix);
-             		printf("Receive message: %s\n", matrix);
+			PrintGraphChar(matrix, 8);
+//             		printf("Receive message: %s\n", matrix);
              		exit(0);
          	}
          	else {
