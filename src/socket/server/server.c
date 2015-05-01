@@ -6,7 +6,7 @@
  */
 
 #include "server.h"
-void receiveservice(int newsockfd, char* result) {
+int receiveservice(int newsockfd, char* result) {
 	char buffer[MATRIXMAXSIZE];
 	int n;
 	bzero(buffer, MATRIXMAXSIZE);
