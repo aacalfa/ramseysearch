@@ -12,11 +12,8 @@
 
 #define MAXSIZE (541)
 
-#define TABOOSIZE (5000)
+#define TABOOSIZE (500)
 #define BIGCOUNT (9999999)
-
-
-//double time1, time2; // Timing variables
 
 /***
  *** example of very simple search for R(7,7) counter examples
@@ -41,8 +38,10 @@ main(int argc,char *argv[])
 	int best_i;
 	int best_j;
 	void *taboo_list;
+	int globalBestCount = BIGCOUNT;
+	int bcIncrease = 0;
 
-#if 1
+#if 0
 	/*
 	 * start with graph of size 8
 	 */
@@ -53,11 +52,9 @@ main(int argc,char *argv[])
 	}
 #else
 	/*
-	 * start with pre-computed graph of size 50
+	 * start with pre-computed graph of size 109
 	 */
-	//ReadGraph("../../counterexamples/n50.txt", &g, &gsize);
-	ReadGraph("test109.txt", &g, &gsize);
-
+	ReadGraph("../../counterexamples/n109.txt", &g, &gsize);
 #endif
 
 	/*
@@ -71,7 +68,7 @@ main(int argc,char *argv[])
 	/*
 	 * start out with all zeros
 	 */
-	memset(g,0,gsize*gsize*sizeof(int));
+	//memset(g,0,gsize*gsize*sizeof(int));
 
 	/*
 	 * while we do not have a publishable result
@@ -92,7 +89,7 @@ main(int argc,char *argv[])
 			//PrintGraph(g,gsize);
 
 			/* Save counterexample into a file */
-			SaveGraph(g,gsize);
+			SaveGraph(g,gsize, "counterexamples");
 
 			/*
 			 * make a new graph one size bigger
@@ -134,10 +131,19 @@ main(int argc,char *argv[])
 			 */
 			taboo_list = FIFOResetEdge(taboo_list);
 
+			/* Reset best_count increase count */
+			bcIncrease = 0;
 			/*
 			 * keep going
 			 */
 			continue;
+		}
+
+		/* If bcIncrease is greater than the taboo size, add some randomness in
+		 * edge flipping to get out of local minimum.
+		 */
+		if(bcIncrease > TABOOSIZE) {
+			//Randomize(&g, gsize);
 		}
 
 		/*
@@ -189,7 +195,7 @@ main(int argc,char *argv[])
 			printf("no best edge found, terminating\n");
 			exit(1);
 		}
-		
+	
 		/*
 		 * keep the best flip we saw
 		 */
@@ -213,6 +219,17 @@ main(int argc,char *argv[])
 			best_j,
 			g[best_i*gsize+best_j]);
 
+		/* Update global best count  and save intermediate result in a file */
+		if(best_count <= globalBestCount) {
+			globalBestCount = best_count;
+			SaveGraph(g,gsize, "intermediate");
+		}
+		/* If best_count is increasing, it may mean that we reached a local minimum.
+		 * Keep track of how many times best_count increases in value
+		 */
+		else {
+			bcIncrease++;
+		}
 		/*
 		 * rinse and repeat
 		 */

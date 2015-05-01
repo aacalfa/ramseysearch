@@ -76,13 +76,13 @@ void CopyGraph(int *old_g, int o_gsize, int *new_g, int n_gsize)
  /*
  * prints in the right format for the read routine
  */
-void SaveGraph(int *g, int gsize)
+void SaveGraph(int *g, int gsize, char *dir_name)
 {
 	int i;
 	int j;
 
 	char filename[30];
-	sprintf(filename, "../../counterexamples/n%d.txt", gsize);
+	sprintf(filename, "../../%s/n%d.txt", dir_name, gsize);
 	FILE *f = fopen(filename, "w");
 	if (f == NULL)
 	{
