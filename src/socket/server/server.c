@@ -6,13 +6,32 @@
  */
 
 #include "server.h"
+void receiveservice(int newsockfd, char* result) {
+	char buffer[MATRIXMAXSIZE];
+	int n;
+	bzero(buffer, MATRIXMAXSIZE);
+	n = read(newsockfd, buffer, MATRIXMAXSIZE);
+	if (n < 0) {
+		printf("Error: failed to read from socket\n");
+		return -1;
+	}
+	strcpy(result, buffer);
 
+	char* ack = (char*) malloc(100 * sizeof(char));
+	strcpy(ack, SERVERNAME);
+	strcat(ack, " got your message!");
+	n = write(newsockfd, ack, strlen(ack));
+	if (n < 0) {
+		printf("Error: failed to write to socket\n");
+		return -1;
+	}
+	free(ack);
+	close(newsockfd);
+}
 int receiveCounterExample(char* matrix) {
 	int sockfd, newsockfd, portno;
 	socklen_t clilen;
-	char buffer[MATRIXMAXSIZE];
 	struct sockaddr_in serv_addr, cli_addr;
-	int n;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) {
 		printf("Error: failed to open socket\n");
@@ -35,25 +54,19 @@ int receiveCounterExample(char* matrix) {
 			printf("Error: failed to accept\n");
 			return -1;
 		}
-		bzero(buffer, MATRIXMAXSIZE);
-		n = read(newsockfd, buffer, MATRIXMAXSIZE);
-		if (n < 0) {
-			printf("Error: failed to read from socket\n");
-			return -1;
+		int pid = fork();
+		if (pid < 0) {
+			printf("Error: failed to fork\n");
 		}
-		strcpy(matrix, buffer);
-		printf("Receive message: %s\n", matrix);
-
-		char* ack = (char*) malloc(100 * sizeof(char));
-		strcpy(ack, SERVERNAME);
-		strcat(ack, " got your message!");
-		n = write(newsockfd, ack, strlen(ack));
-		if (n < 0) {
-			printf("Error: failed to write to socket\n");
-			return -1;
-		}
-		free(ack);
-		close(newsockfd);
+		if (pid == 0)  {
+             		close(sockfd);
+             		receiveservice(newsockfd, matrix);
+             		printf("Receive message: %s\n", matrix);
+             		exit(0);
+         	}
+         	else {
+         		close(newsockfd);
+		} 
 	}
 	close(sockfd);
 	return 1;
