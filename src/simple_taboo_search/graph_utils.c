@@ -109,6 +109,28 @@ void SaveGraph(int *g, int gsize, char *dir_name)
 /*
  * prints in the right format for the read routine
  */
+void PrintGraphChar(char *g, int gsize)
+{
+	int i;
+	int j;
+
+	fprintf(stdout,"%d\n",gsize);
+
+	for(i=0; i < gsize; i++)
+	{
+		for(j=0; j < gsize; j++)
+		{
+			fprintf(stdout,"%c ",g[i*gsize+j]);
+		}
+		fprintf(stdout,"\n");
+	}
+
+	return;
+}
+
+/*
+ * prints in the right format for the read routine
+ */
 void PrintGraph(int *g, int gsize)
 {
 	int i;
