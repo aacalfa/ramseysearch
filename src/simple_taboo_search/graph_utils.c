@@ -12,7 +12,7 @@
  */
 char* GraphtoChar(int *g, int gsize)
 {
-	char graph[gsize];
+	char *graph = (char*) malloc(gsize*gsize*sizeof(char));
 	int i, j;
 	for(i=0; i < gsize - 1; i++)
 	{
@@ -21,6 +21,7 @@ char* GraphtoChar(int *g, int gsize)
 			graph[i*gsize+j] = g[i*gsize+j]+ '0';
 		}
 	}
+	return graph;
 }
 
 /*
