@@ -37,9 +37,9 @@ int sendCounterExample(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXS
 		printf("Error: Fail to connect\n");
 		return -1;
 	}
-	
-	strcat(MATRIX, MATRIXSIZE);
-	n = write(sockfd, MATRIX, strlen(MATRIX));
+	strcat(MATRIXSIZE,":");
+	strcat(MATRIXSIZE,MATRIX);
+	n = write(sockfd, MATRIXSIZE, strlen(MATRIXSIZE));
 	if (n < 0) {
 		printf("Error: Fail to write to socket");
 		return -1;

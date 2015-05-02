@@ -1,6 +1,7 @@
 #ifndef GRAPH_UTILS_H
 #define GRAPH_UTILS_H
 
+int* ChartoGraph(char *g, int gsize);
 char* GraphtoChar(int *g, int gsize);
 void PrintGraph(int *g, int gsize);
 void PrintGraphChar(char *g, int gsize);

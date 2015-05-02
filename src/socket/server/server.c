@@ -29,6 +29,15 @@ int receiveservice(int newsockfd, char* result) {
 	free(ack);
 	close(newsockfd);
 }
+
+void parseMatrix(char *matrix, int **g, int *gsize) {
+	char *pch;
+	pch = strtok(matrix, ":");
+	*gsize = atoi(pch);
+	pch = strtok(NULL, ":");
+	*g = ChartoGraph(pch, *gsize);
+}
+
 int receiveCounterExample(char* matrix) {
 	int sockfd, newsockfd, portno;
 	socklen_t clilen;
@@ -60,10 +69,12 @@ int receiveCounterExample(char* matrix) {
 			printf("Error: failed to fork\n");
 		}
 		if (pid == 0)  {
+			int *g;
+			int gsize;
              		close(sockfd);
              		receiveservice(newsockfd, matrix);
-			PrintGraphChar(matrix, 8);
-//             		printf("Receive message: %s\n", matrix);
+			parseMatrix(matrix, &g, &gsize);
+			PrintGraph(g, gsize);
              		exit(0);
          	}
          	else {

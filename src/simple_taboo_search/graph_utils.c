@@ -7,6 +7,20 @@
 
 #define MAXSIZE (541)
 
+int* ChartoGraph(char *g, int gsize)
+{
+	int *graph = (int*) calloc(gsize*gsize,sizeof(int));
+
+	int i, j;
+	for(i=0; i < gsize; i++)
+	{
+		for(j=0; j < gsize; j++)
+		{
+			graph[i*gsize+j] = g[i*gsize+j] - '0';
+		}
+	}
+	return graph;
+}
 /*
  * Converts a graph matrix from int to char
  */
