@@ -18,7 +18,7 @@
 
 static int SERVERPORT = 5098;
 static char* SERVERNAME = "Geurney";
-static int MATRIXMAXSIZE = 200*200;
+static int MATRIXMAXSIZE = 210*210;
 
 int receiveCounterExample(char* matrix);
 
