@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 	ReadGraph("n8.txt", &g, &gsize);
         matrix = GraphtoChar(g,gsize);
 
-	if(sendCounterExample(hostname, SERVERPORT, matrix, result)) {
+	if(sendCounterExample(hostname, SERVERPORT, matrix, gsize, result)) {
 		printf("%s\n", result);
 	}
 	free(matrix);
