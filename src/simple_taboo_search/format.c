@@ -1,6 +1,7 @@
 /**
  * Convert a number to string.
  */
+#include <stdlib.h>
 char* tostring(int num)
 {
 	int len;
