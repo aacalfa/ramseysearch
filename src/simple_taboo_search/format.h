@@ -7,7 +7,6 @@
 
 #ifndef FORMAT_H_
 #define FORMAT_H_
-#include <stdlib.h>
 
 char* tostring(int num);
 
