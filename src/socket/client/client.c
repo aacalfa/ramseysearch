@@ -7,7 +7,7 @@
 
 #include "client.h"
 
-int sendCounterExample(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* result) {
+int sendCounterExample(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, char* result) {
 	int sockfd, portno, n;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
@@ -37,7 +37,8 @@ int sendCounterExample(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* result)
 		printf("Error: Fail to connect\n");
 		return -1;
 	}
-
+	
+	strcat(MATRIX, MATRIXSIZE);
 	n = write(sockfd, MATRIX, strlen(MATRIX));
 	if (n < 0) {
 		printf("Error: Fail to write to socket");
