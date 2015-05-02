@@ -1,6 +1,6 @@
 #include "client.h"
 #include "graph_utils.h"
-#include "format.h"
+#include "utils.h"
 int main(int argc, char *argv[]) {
 	char* hostname;
 	char* matrix;
@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
 
 	ReadGraph("n109.txt", &g, &gsize);
         matrix = GraphtoChar(g,gsize);
-        size = tostring(gsize);
+        size = NumtoString(gsize);
 //	sprintf(size, "%d", gsize);
 	printf("%s",size);
 	if(sendCounterExample(hostname, SERVERPORT, matrix, size, result)) {

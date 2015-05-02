@@ -2,7 +2,7 @@
  * Convert a number to string.
  */
 #include <stdlib.h>
-char* tostring(int num)
+char* NumtoString(int num)
 {
 	int len;
 	if(num > 99) {
