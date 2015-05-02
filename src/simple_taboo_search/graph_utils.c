@@ -12,15 +12,21 @@
  */
 char* GraphtoChar(int *g, int gsize)
 {
-	char *graph = (char*) malloc(gsize*gsize*sizeof(char));
+	int charsize = (gsize*gsize) + 1;
+	char *graph = (char*) calloc(charsize,sizeof(char));
+
 	int i, j;
-	for(i=0; i < gsize - 1; i++)
+	for(i=0; i < gsize; i++)
 	{
-		for(j=i+1; j < gsize; j++)
+		for(j=0; j < gsize; j++)
 		{
-			graph[i*gsize+j] = g[i*gsize+j]+ '0';
+			if(g[i*gsize+j] == 0)
+				graph[i*gsize+j] = '0';
+			else
+				graph[i*gsize+j] = '1';
 		}
 	}
+	graph[gsize*gsize] = '\0';
 	return graph;
 }
 
