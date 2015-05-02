@@ -20,10 +20,7 @@ char* GraphtoChar(int *g, int gsize)
 	{
 		for(j=0; j < gsize; j++)
 		{
-			if(g[i*gsize+j] == 0)
-				graph[i*gsize+j] = '0';
-			else
-				graph[i*gsize+j] = '1';
+			graph[i*gsize+j] = g[i*gsize+j] + '0';
 		}
 	}
 	graph[gsize*gsize] = '\0';
