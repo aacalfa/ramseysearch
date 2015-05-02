@@ -19,7 +19,7 @@
 
 static int READBUFFERSIZE = 256;
 static int SERVERPORT = 5098;
-int sendCounterExample(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* result);
+int sendCounterExample(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, char* result);
 
 
 #endif /* CLIENT_H_ */
