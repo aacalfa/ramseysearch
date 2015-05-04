@@ -34,6 +34,7 @@ main(int argc,char *argv[])
 	int count;
 	int i;
 	int j;
+	int new_count;
 	int best_count;
 	int best_i;
 	int best_j;
@@ -41,7 +42,7 @@ main(int argc,char *argv[])
 	int globalBestCount = BIGCOUNT;
 	int bcIncrease = 0;
 
-#if 0
+#if 1
 	/*
 	 * start with graph of size 8
 	 */
@@ -78,7 +79,12 @@ main(int argc,char *argv[])
 		/*
 		 * find out how we are doing
 		 */
-		count = CliqueCount(g,gsize);
+		unsigned long int *ecounts = malloc(gsize*gsize*sizeof(unsigned long int));
+		if(ecounts == NULL) {
+			printf("ERROR: ran out of memory during malloc of ecounts!\n");
+			exit(1);
+		}
+		count = CliqueCountAll(g,gsize,ecounts);
 
 		/*
 		 * if we have a counter example
@@ -166,7 +172,12 @@ main(int argc,char *argv[])
 				 * flip it
 				 */
 				g[i*gsize+j] = 1 - g[i*gsize+j];
-				count = CliqueCount(g,gsize);
+
+				/*
+				 * compute the new count based on the edge flip
+				 */
+				//count = CliqueCount(g,gsize);
+				new_count = count - ecounts[i*gsize+j] + CliqueCountEdge(g,gsize,i,j);
 
 				/*
 				 * is it better and the i,j,count not taboo?
