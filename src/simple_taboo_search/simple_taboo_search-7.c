@@ -69,7 +69,7 @@ main(int argc,char *argv[])
 	/*
 	 * start out with all zeros
 	 */
-	//memset(g,0,gsize*gsize*sizeof(int));
+	memset(g,0,gsize*gsize*sizeof(int));
 
 	/*
 	 * while we do not have a publishable result
@@ -79,7 +79,8 @@ main(int argc,char *argv[])
 		/*
 		 * find out how we are doing
 		 */
-		unsigned long int *ecounts = malloc(gsize*gsize*sizeof(unsigned long int));
+		int *ecounts = malloc(gsize*gsize*sizeof(int));
+		int *ecounts2 = malloc(gsize*gsize*sizeof(int));
 		if(ecounts == NULL) {
 			printf("ERROR: ran out of memory during malloc of ecounts!\n");
 			exit(1);
@@ -128,6 +129,7 @@ main(int argc,char *argv[])
 			 * throw away the old graph and make new one the
 			 * graph
 			 */
+			free(ecounts);
 			free(g);
 			g = new_g;
 			gsize = gsize+1;
@@ -177,20 +179,23 @@ main(int argc,char *argv[])
 				 * compute the new count based on the edge flip
 				 */
 				//count = CliqueCount(g,gsize);
+				CliqueCountAll(g,gsize,ecounts2);
+				printf("Edge clique count (all): %d, (edge): %d\n", ecounts2[i*gsize+j], CliqueCountEdge(g,gsize,i,j));
+
 				new_count = count - ecounts[i*gsize+j] + CliqueCountEdge(g,gsize,i,j);
 
 				/*
 				 * is it better and the i,j,count not taboo?
 				 */
 #ifdef EDGEONLY
-				if((count < best_count) && 
+				if((new_count < best_count) && 
 					!FIFOFindEdge(taboo_list,i,j))
 #else
-				if((count < best_count) && 
+				if((new_count < best_count) && 
 					!FIFOFindEdgeCount(taboo_list,i,j,count))
 #endif
 				{
-					best_count = count;
+					best_count = new_count;
 					best_i = i;
 					best_j = j;
 				}
@@ -217,15 +222,18 @@ main(int argc,char *argv[])
 		 * it again
 		 */
 		count = CliqueCount(g,gsize);
+		int count2 = CliqueCountAll(g,gsize,ecounts);
 #ifdef EDGEONLY
 		FIFOInsertEdge(taboo_list,best_i,best_j);
 #else
 		FIFOInsertEdgeCount(taboo_list,best_i,best_j,count);
 #endif
 
-		printf("ce size: %d, best_count: %d, best edge: (%d,%d), new color: %d\n",
+		printf("ce size: %d, best_count: %d, count: %d, count2: %d, best edge: (%d,%d), new color: %d\n",
 			gsize,
 			best_count,
+			count,
+			count2,
 			best_i,
 			best_j,
 			g[best_i*gsize+best_j]);

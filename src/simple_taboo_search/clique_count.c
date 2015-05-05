@@ -21,7 +21,7 @@
  *** only checks values above diagonal
  */
 
-unsigned long int CliqueCount(int *g,
+int CliqueCount(int *g,
 	     int gsize)
 {
     int i;
@@ -31,7 +31,7 @@ unsigned long int CliqueCount(int *g,
     int m;
     int n;
     int o;
-    unsigned long int count=0;
+    int count=0;
     
     for(i=0;i < gsize-sgsize+1; i++)
     {
@@ -89,7 +89,7 @@ unsigned long int CliqueCount(int *g,
     return(count);
 }
 
-unsigned long int CliqueCountEdge(int *g,
+int CliqueCountEdge(int *g,
          int gsize, int i, int j)
 {
     int k;
@@ -97,7 +97,7 @@ unsigned long int CliqueCountEdge(int *g,
     int m;
     int n;
     int o;
-    unsigned long int count=0;
+    int count=0;
     
     for(k=j+1;k < gsize-sgsize+3; k++) 
     { 
@@ -149,8 +149,8 @@ unsigned long int CliqueCountEdge(int *g,
     return(count);
 }
 
-unsigned long int CliqueCountAll(int *g,
-         int gsize, unsigned long int *ecounts)
+int CliqueCountAll(int *g,
+         int gsize, int *ecounts)
 {
     int i;
     int j;
@@ -159,11 +159,11 @@ unsigned long int CliqueCountAll(int *g,
     int m;
     int n;
     int o;
-    unsigned long int count=0;
+    int count=0;
 
     if(ecounts != NULL)
     {
-        memset(ecounts,0,gsize*gsize*sizeof(unsigned long int));
+        memset(ecounts,0,gsize*gsize*sizeof(int));
     }
 
     for(i=0;i < gsize-sgsize+1; i++)
