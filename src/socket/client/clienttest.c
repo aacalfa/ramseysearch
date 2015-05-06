@@ -4,7 +4,7 @@
 int main(int argc, char *argv[]) {
 	char* hostname;
 	char* matrix;
-	char result[READBUFFERSIZE];
+	char feedback[READBUFFERSIZE];
 	int *g;
 	int gsize;
 //	char  size[3];
@@ -18,9 +18,10 @@ int main(int argc, char *argv[]) {
         size = NumtoString(gsize);
 //	sprintf(size, "%d", gsize);
 	printf("%s",size);
-	if(sendCounterExample(hostname, SERVERPORT, matrix, size, result)) {
-		printf("%s\n", result);
+	if(sendResult(hostname, SERVERPORT, COUNTEREXAMPLE, matrix, size, feedback)) {
+		printf("%s\n", feedback);
 	}
 	free(matrix);
+
 	return 0;
 }
