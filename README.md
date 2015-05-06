@@ -1,5 +1,5 @@
 # ramseysearch
-This project aims to find all valid graphs for the "Party Problem" in R(7,7), from the Ramsey Theory set.
+This project aims to find as many valid graphs as possible for the "Party Problem" in R(7,7), from the Ramsey Theory set.
 
 A cloud-based search/optimization system that attempts to improve the known bounds on the seventh symmetric
 Ramsey Number R(7,7). The search basically consists of finding counter example graphs for R(7,7).
