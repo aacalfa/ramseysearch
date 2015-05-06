@@ -7,9 +7,15 @@
 
 #include "server.h"
 #include "graph_utils.h"
+
+/*
+ * Reads message from client and sends acknowledgement to client
+ */
 int receiveservice(int newsockfd, char* result) {
 	char buffer[MATRIXMAXSIZE];
 	int n;
+
+	/* Puts message into buffer */
 	bzero(buffer, MATRIXMAXSIZE);
 	n = read(newsockfd, buffer, MATRIXMAXSIZE);
 	if (n < 0) {
@@ -18,6 +24,7 @@ int receiveservice(int newsockfd, char* result) {
 	}
 	strcpy(result, buffer);
 
+	/* Send ack to client */
 	char* ack = (char*) malloc(100 * sizeof(char));
 	strcpy(ack, SERVERNAME);
 	strcat(ack, " got your message!");
@@ -30,6 +37,9 @@ int receiveservice(int newsockfd, char* result) {
 	close(newsockfd);
 }
 
+/*
+ * Parses a message containing the graph adjacency matrix
+ */
 void parseMatrix(char *matrix, int **g, int *gsize) {
 	char *pch;
 	pch = strtok(matrix, ":");
@@ -38,32 +48,46 @@ void parseMatrix(char *matrix, int **g, int *gsize) {
 	*g = ChartoGraph(pch, *gsize);
 }
 
+/*
+ * Receives a counterExample graph from a client.
+ */
 int receiveCounterExample(char* matrix) {
 	int sockfd, newsockfd, portno;
 	socklen_t clilen;
 	struct sockaddr_in serv_addr, cli_addr;
+
+	/* Create a new socket */
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) {
 		printf("Error: failed to open socket\n");
 		return -1;
 	}
+
+	/* Initialize server address structure */
 	bzero((char *) &serv_addr, sizeof(serv_addr));
 	portno = SERVERPORT;
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
-	serv_addr.sin_port = htons(portno);
+	serv_addr.sin_port = htons(portno); /* convert port number to network byte order */
+
+	/* Attempt to bind the socket to the host address */
 	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
 		printf("Error: failed to bind\n");
 		return -1;
 	}
+	/* handle at most 5 connections */
 	listen(sockfd, 5);
+
 	clilen = sizeof(cli_addr);
 	while (1) {
+	 /* Block until a client connects */
 		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 		if (newsockfd < 0) {
 			printf("Error: failed to accept\n");
 			return -1;
 		}
+
+		/* Create process to handle client message */
 		int pid = fork();
 		if (pid < 0) {
 			printf("Error: failed to fork\n");
@@ -71,14 +95,15 @@ int receiveCounterExample(char* matrix) {
 		if (pid == 0)  {
 			int *g;
 			int gsize;
-             		close(sockfd);
-             		receiveservice(newsockfd, matrix);
+			close(sockfd);
+			/* Parse message from client */
+			receiveservice(newsockfd, matrix);
 			parseMatrix(matrix, &g, &gsize);
 			PrintGraph(g, gsize);
-             		exit(0);
-         	}
-         	else {
-         		close(newsockfd);
+			exit(0);
+		}
+		else {
+			close(newsockfd);
 		} 
 	}
 	close(sockfd);
