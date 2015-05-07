@@ -1,16 +1,17 @@
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <signal.h>
-#include <sys/time.h>
-#include <sys/resource.h>
 #include <string.h>
-#include <strings.h>
-#include <math.h>
-
 
 #define sgsize (7)
+
+int EdgeColor(int *g, int gsize, int i, int j) {
+    if(i < j) {
+        return g[i*gsize + j];
+    }
+    else {
+        return g[j*gsize + i];
+    }
+}
 
 /*
  ***
@@ -102,43 +103,45 @@ int CliqueCountEdge(int *g,
     for(k=0;k < gsize-sgsize+3; k++) 
     { 
         if((k != i) && (k != j) &&
-           (g[i*gsize+j] == g[i*gsize+k]) && 
-           (g[i*gsize+j] == g[j*gsize+k]))
+           (g[i*gsize+j] == EdgeColor(g, gsize, i, k)) && 
+           (g[i*gsize+j] == EdgeColor(g, gsize, j, k)))
         {
             for(l=k+1;l < gsize-sgsize+4; l++) 
             { 
                 if((l != i) && (l != j) &&
-                   (g[i*gsize+j] == g[i*gsize+l]) && 
-                   (g[i*gsize+j] == g[j*gsize+l]) && 
-                   (g[i*gsize+j] == g[k*gsize+l]))
+                   (g[i*gsize+j] == EdgeColor(g, gsize, i, l)) && 
+                   (g[i*gsize+j] == EdgeColor(g, gsize, j, l)) && 
+                   (g[i*gsize+j] == EdgeColor(g, gsize, k, l)))
                 {
                     for(m=l+1;m < gsize-sgsize+5; m++) 
                     {
                         if((m != i) && (m != j) &&
-                           (g[i*gsize+j] == g[i*gsize+m]) && 
-                           (g[i*gsize+j] == g[j*gsize+m]) &&
-                           (g[i*gsize+j] == g[k*gsize+m]) && 
-                           (g[i*gsize+j] == g[l*gsize+m]))
+                           (g[i*gsize+j] == EdgeColor(g, gsize, i, m)) && 
+                           (g[i*gsize+j] == EdgeColor(g, gsize, j, m)) &&
+                           (g[i*gsize+j] == EdgeColor(g, gsize, k, m)) && 
+                           (g[i*gsize+j] == EdgeColor(g, gsize, l, m)))
                         {
                             for(n=m+1;n<gsize-sgsize+6;n++)
                             {
                                 if((n != i) && (n != j) &&
-                                   (g[i*gsize+j] == g[i*gsize+n]) && 
-                                   (g[i*gsize+j] == g[j*gsize+n]) &&
-                                   (g[i*gsize+j] == g[k*gsize+n]) && 
-                                   (g[i*gsize+j] == g[l*gsize+n]) &&
-                                   (g[i*gsize+j] == g[m*gsize+n]))
+                                   (g[i*gsize+j] == EdgeColor(g, gsize, i, n)) && 
+                                   (g[i*gsize+j] == EdgeColor(g, gsize, j, n)) &&
+                                   (g[i*gsize+j] == EdgeColor(g, gsize, k, n)) && 
+                                   (g[i*gsize+j] == EdgeColor(g, gsize, l, n)) &&
+                                   (g[i*gsize+j] == EdgeColor(g, gsize, m, n)))
                                 {
                                     for(o=n+1;o<gsize-sgsize+7;o++) 
                                     {
                                         if((o != i) && (o != j) &&
-                                           (g[i*gsize+j] == g[i*gsize+o]) &&
-                                           (g[i*gsize+j] == g[j*gsize+o]) &&
-                                           (g[i*gsize+j] == g[k*gsize+o]) &&
-                                           (g[i*gsize+j] == g[l*gsize+o]) &&
-                                           (g[i*gsize+j] == g[m*gsize+o]) &&
-                                           (g[i*gsize+j] == g[n*gsize+o])) 
+                                           (g[i*gsize+j] == EdgeColor(g, gsize, i, o)) &&
+                                           (g[i*gsize+j] == EdgeColor(g, gsize, j, o)) &&
+                                           (g[i*gsize+j] == EdgeColor(g, gsize, k, o)) &&
+                                           (g[i*gsize+j] == EdgeColor(g, gsize, l, o)) &&
+                                           (g[i*gsize+j] == EdgeColor(g, gsize, m, o)) &&
+                                           (g[i*gsize+j] == EdgeColor(g, gsize, n, o))) 
                                         {
+                                            //printf("Found clique for edge (%d, %d): %d%d%d%d%d%d%d\n", i, j, i, j, k, l, m, n, o);
+                                            
                                             count++;
                                         }
                                     }
