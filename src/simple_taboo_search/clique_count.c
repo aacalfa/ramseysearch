@@ -99,27 +99,31 @@ int CliqueCountEdge(int *g,
     int o;
     int count=0;
     
-    for(k=j+1;k < gsize-sgsize+3; k++) 
+    for(k=0;k < gsize-sgsize+3; k++) 
     { 
-        if((g[i*gsize+j] == g[i*gsize+k]) && 
+        if((k != i) && (k != j) &&
+           (g[i*gsize+j] == g[i*gsize+k]) && 
            (g[i*gsize+j] == g[j*gsize+k]))
         {
             for(l=k+1;l < gsize-sgsize+4; l++) 
             { 
-                if((g[i*gsize+j] == g[i*gsize+l]) && 
+                if((l != i) && (l != j) &&
+                   (g[i*gsize+j] == g[i*gsize+l]) && 
                    (g[i*gsize+j] == g[j*gsize+l]) && 
                    (g[i*gsize+j] == g[k*gsize+l]))
                 {
                     for(m=l+1;m < gsize-sgsize+5; m++) 
                     {
-                        if((g[i*gsize+j] == g[i*gsize+m]) && 
+                        if((m != i) && (m != j) &&
+                           (g[i*gsize+j] == g[i*gsize+m]) && 
                            (g[i*gsize+j] == g[j*gsize+m]) &&
                            (g[i*gsize+j] == g[k*gsize+m]) && 
                            (g[i*gsize+j] == g[l*gsize+m]))
                         {
                             for(n=m+1;n<gsize-sgsize+6;n++)
                             {
-                                if((g[i*gsize+j] == g[i*gsize+n]) && 
+                                if((n != i) && (n != j) &&
+                                   (g[i*gsize+j] == g[i*gsize+n]) && 
                                    (g[i*gsize+j] == g[j*gsize+n]) &&
                                    (g[i*gsize+j] == g[k*gsize+n]) && 
                                    (g[i*gsize+j] == g[l*gsize+n]) &&
@@ -127,7 +131,8 @@ int CliqueCountEdge(int *g,
                                 {
                                     for(o=n+1;o<gsize-sgsize+7;o++) 
                                     {
-                                        if((g[i*gsize+j] == g[i*gsize+o]) &&
+                                        if((o != i) && (o != j) &&
+                                           (g[i*gsize+j] == g[i*gsize+o]) &&
                                            (g[i*gsize+j] == g[j*gsize+o]) &&
                                            (g[i*gsize+j] == g[k*gsize+o]) &&
                                            (g[i*gsize+j] == g[l*gsize+o]) &&
