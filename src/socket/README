@@ -1,0 +1,16 @@
+Server is for scheduler receiving messages and sending command to a Client. 
+Client is for worker sending messages to and receiving commands from a Server.
+
+The message falls into two catergories, RESULT and REQUEST. 
+The flag of a RESULT message is 0, and 1 for a REQUEST message.
+
+A RESULT message is either a counter example or an intermediate result. 
+The format of a RESULT message is as follows:
+  RESULTFLAG:MatrixSize:CliqueCount:Matrix
+By convention, a RESULTFLAG is 0.
+For example,message of an intermediate result with 109 nodes, 56 clique count would be as follows:
+  0:109:56:010010001001...
+
+A REQUEST message contains only the request flag. 
+  REQUESTFLAG
+By convention, a REQUESTFLAG is 1.
