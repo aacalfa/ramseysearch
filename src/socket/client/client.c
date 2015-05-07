@@ -11,7 +11,7 @@
 * Send a counter example or intermediate result to the server. Flag is to indicate the content. 
 * feedback is a buffer to store message from the server.
 */
-int sendResult(char* HOSTNAME, int HOSTPORT, char* flag, char* MATRIX, char* MATRIXSIZE, char* feedback) {
+int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, char* CLIQUECOUNT, char* feedback) {
 	int sockfd; // Socket file describer
 	int portno; // Port Number
 	int n; // Read/Write status flag
@@ -48,9 +48,12 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* flag, char* MATRIX, char* MAT
 	}
 
 	// Prepare the sending message.
-	strcpy(msg,flag);
+	//Format RESULT:MATRIXSIZE:CLIQUECOUNT:MATRIX
+	strcpy(msg,RESULT);
 	strcat(msg,":");
 	strcat(msg,MATRIXSIZE);
+	strcat(msg,":");
+	strcat(msg,CLIQUECOUNT);
 	strcat(msg,":");
 	strcat(msg,MATRIX);
 
