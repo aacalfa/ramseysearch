@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 #define sgsize (7)
@@ -139,9 +138,7 @@ int CliqueCountEdge(int *g,
                                            (g[i*gsize+j] == EdgeColor(g, gsize, l, o)) &&
                                            (g[i*gsize+j] == EdgeColor(g, gsize, m, o)) &&
                                            (g[i*gsize+j] == EdgeColor(g, gsize, n, o))) 
-                                        {
-                                            //printf("Found clique for edge (%d, %d): %d%d%d%d%d%d%d\n", i, j, i, j, k, l, m, n, o);
-                                            
+                                        {                                            
                                             count++;
                                         }
                                     }
