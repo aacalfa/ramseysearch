@@ -17,11 +17,18 @@ int main(int argc, char *argv[]) {
         matrix = GraphtoChar(g,gsize);
         size = NumtoString(gsize);
 //	sprintf(size, "%d", gsize);
-	printf("%s",size);
+	//printf("%s",size);
+
+	bzero(feedback, READBUFFERSIZE);
 	if(sendResult(hostname, SERVERPORT, COUNTEREXAMPLE, matrix, size, feedback)) {
 		printf("%s\n", feedback);
 	}
 	free(matrix);
+
+	bzero(feedback, READBUFFERSIZE);
+	if(sendRequest(hostname, SERVERPORT, feedback)) {
+		printf("%s\n", feedback);
+	}
 
 	return 0;
 }

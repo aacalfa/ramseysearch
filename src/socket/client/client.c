@@ -7,14 +7,21 @@
 
 #include "client.h"
 
+/*
+* Send a counter example or intermediate result to the server. Flag is to indicate the content. 
+* feedback is a buffer to store message from the server.
+*/
 int sendResult(char* HOSTNAME, int HOSTPORT, char* flag, char* MATRIX, char* MATRIXSIZE, char* feedback) {
-	int sockfd, portno, n;
-	struct sockaddr_in serv_addr;
-	struct hostent *server;
-	char readbuffer[READBUFFERSIZE];
-	char* msg = "";
+	int sockfd; // Socket file describer
+	int portno; // Port Number
+	int n; // Read/Write status flag
+	struct sockaddr_in serv_addr;  //Server Address
+	struct hostent *server;  // Server
+	char readbuffer[READBUFFERSIZE];  //Buffer for message received from server.
+	char* msg = (char*)malloc(READBUFFERSIZE*sizeof(char));   //Message to send.
+
 	
-	
+	// Establish Connection to the server.
 	if (HOSTNAME == NULL) {
 		printf("Error: Wrong Hostname!\n");
 		return -1;
@@ -39,18 +46,25 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* flag, char* MATRIX, char* MAT
 		printf("Error: Fail to connect\n");
 		return -1;
 	}
-	strcat(msg,flag);
+
+	// Prepare the sending message.
+	strcpy(msg,flag);
 	strcat(msg,":");
 	strcat(msg,MATRIXSIZE);
 	strcat(msg,":");
 	strcat(msg,MATRIX);
+
+	//Send message
 	n = write(sockfd, msg, strlen(msg));
 	if (n < 0) {
 		printf("Error: Fail to write to socket");
 		return -1;
 	}
+	free(msg);
 
+	// Initialize the read buffer
 	bzero(readbuffer, READBUFFERSIZE);
+	// Read message from the server.
 	n = read(sockfd, readbuffer, READBUFFERSIZE - 1);
 	if (n < 0) {
 		printf("Error: Fail to read from socket");
@@ -60,14 +74,21 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* flag, char* MATRIX, char* MAT
 	return 1;
 }
 
+/*
+* Send a request to the server to get a counter example or an intermediate result.
+* feedback is to store the message received from server.
+*/
 int sendRequest(char* HOSTNAME, int HOSTPORT, char* feedback) {
-	int sockfd, portno, n;
-	struct sockaddr_in serv_addr;
-	struct hostent *server;
-	char readbuffer[READBUFFERSIZE];
-	char* msg;
-	*msg = *REQUEST;
+	int sockfd; // Socket file describer
+	int portno; // Port Number
+	int n; // Read/Write status flag
+	struct sockaddr_in serv_addr;  //Server Address
+	struct hostent *server;  // Server
+	char readbuffer[READBUFFERSIZE];  //Buffer for message received from server.
+	char* msg; //Message to send.
+	*msg = *REQUEST; //Set the flag of the message to be request.
 	
+	// Establish Connection to the server.
 	if (HOSTNAME == NULL) {
 		printf("Error: Wrong Hostname!\n");
 		return -1;
@@ -93,13 +114,16 @@ int sendRequest(char* HOSTNAME, int HOSTPORT, char* feedback) {
 		return -1;
 	}
 	
+	// Send the request.
 	n = write(sockfd, msg, strlen(msg));
 	if (n < 0) {
 		printf("Error: Fail to write to socket");
 		return -1;
 	}
 
+	// Initialize the read buffer
 	bzero(readbuffer, READBUFFERSIZE);
+	// Read message from the server.
 	n = read(sockfd, readbuffer, READBUFFERSIZE - 1);
 	if (n < 0) {
 		printf("Error: Fail to read from socket");

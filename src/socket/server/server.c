@@ -75,6 +75,7 @@ static int receiveservice(int newsockfd, char* result) {
 	}
 	free(ack);
 	close(newsockfd);
+	return 1;
 }
 
 /* parseMatrix
@@ -170,8 +171,9 @@ int receiveCounterExample(char* matrix) {
 			close(sockfd);
 			/* Parse message from client */
 			receiveservice(newsockfd, matrix);
-			parseMatrix(matrix, &g, &gsize);
-			PrintGraph(g, gsize);
+			printf("%s\n", matrix);
+		//	parseMatrix(matrix, &g, &gsize);
+	//		PrintGraph(g, gsize);
 			exit(0);
 		}
 		else {
