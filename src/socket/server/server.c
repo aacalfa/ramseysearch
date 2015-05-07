@@ -7,11 +7,51 @@
 
 #include "server.h"
 #include "graph_utils.h"
+#include "dllist.h"
+#include "jval.h"
 
-/*
+typedef struct scheduler {
+	int *currCE; /* Current best counter example found */
+	int currCEsize; /* Current best counter example size */
+
+	int *currIN; /* Current best intermediate graph found */
+	int currINsize; /* Current best counter example size */
+
+	Dllist clients; /* List of all clients currently connected */
+}Scheduler;
+
+typedef struct clientnode {
+	int sockfd;
+	struct sockaddr_in cli_addr;
+}ClientNode;
+
+/* Scheduler singleton instance */
+Scheduler *_Scheduler = NULL;
+
+/*********************
+ _                 _ 
+| |   ___  __ __ _| |
+| |__/ _ \/ _/ _` | |
+|____\___/\__\__,_|_|
+*********************/
+
+/* addClient
+ * Add a client to the Scheduler list of clients
+ */
+int addClient(int clisockfd, struct sockaddr_in cli_addr) {
+	/* Create ClientNode and Jval data representing the client */
+	ClientNode *clnode = (ClientNode*) malloc(sizeof(ClientNode));
+	Jval client;
+	client = new_jval_v(clnode);
+
+	/* Append client to list */
+	dll_append(_Scheduler->clients, client);
+}
+
+/* receiveservice
  * Reads message from client and sends acknowledgement to client
  */
-int receiveservice(int newsockfd, char* result) {
+static int receiveservice(int newsockfd, char* result) {
 	char buffer[MATRIXMAXSIZE];
 	int n;
 
@@ -37,15 +77,47 @@ int receiveservice(int newsockfd, char* result) {
 	close(newsockfd);
 }
 
-/*
+/* parseMatrix
  * Parses a message containing the graph adjacency matrix
+ * Message format "[graphsize]:[graph adjacency matrix]"
  */
-void parseMatrix(char *matrix, int **g, int *gsize) {
+static void parseMatrix(char *matrix, int **g, int *gsize) {
 	char *pch;
 	pch = strtok(matrix, ":");
 	*gsize = atoi(pch);
 	pch = strtok(NULL, ":");
 	*g = ChartoGraph(pch, *gsize);
+}
+
+/**************************
+  ___ _        _          _ 
+ / __| |   ___| |__  __ _| |
+| (_ | |__/ _ \ '_ \/ _` | |
+ \___|____\___/_.__/\__,_|_|
+**************************/
+
+/* initializeScheduler
+ * Initializes scheduler if it has not been initialized yet.
+ * Returns 0 if the scheduler was initialized correctly.
+ * Returns 1 if the scheduler already exists.
+ * Returns -1 if the initialization was unsuccessful.
+ */
+int initializeScheduler(void) {
+	if(_Scheduler == NULL) {
+		_Scheduler = (Scheduler*) malloc(sizeof(Scheduler));
+		if(_Scheduler == NULL)
+			return -1;
+
+		/* Initialize fields */
+		_Scheduler->clients = new_dllist();
+		/* Load best graph counterexample */
+		ReadGraph("../../../counterexamples/n111.txt", &(_Scheduler->currCE), &(_Scheduler->currCEsize));
+		/* Load best intermediate counterexample */
+		ReadGraph("../../../intermediate/n112.txt", &(_Scheduler->currIN), &(_Scheduler->currINsize));
+		return 0;
+	}
+	else
+		return 1;
 }
 
 /*

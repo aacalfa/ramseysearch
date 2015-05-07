@@ -21,5 +21,6 @@ static char* SERVERNAME = "Geurney";
 static int MATRIXMAXSIZE = 210*210;
 
 int receiveCounterExample(char* matrix);
+int initializeScheduler(void);
 
 #endif /* SERVER_SERVER_H_ */

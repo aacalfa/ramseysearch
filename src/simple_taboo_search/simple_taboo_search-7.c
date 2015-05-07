@@ -7,6 +7,7 @@
 #include "omp.h"
 #include "fifo.h" /* for taboo list */
 #include "graph_utils.h" /* for ReadGraph */
+#include "clique_count.h"
 
 #define EDGEONLY
 

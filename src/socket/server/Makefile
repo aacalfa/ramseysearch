@@ -4,10 +4,10 @@ INCLUDES = -I$(TOP)
 CFLAGS = -g
 COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 
-INCL=../../simple_taboo_search/graph_utils.h
+INCL=../../simple_taboo_search/graph_utils.h ../../simple_taboo_search/dllist.h ../../simple_taboo_search/jval.h
 COMMON=../../simple_taboo_search
 PRED=.
-BOBJ=$(COMMON)/graph_utils.o
+BOBJ=$(COMMON)/graph_utils.o $(COMMON)/dllist.o $(COMMON)/jval.o
 LIBS= -lm 
 
 PROGRAMS = server
