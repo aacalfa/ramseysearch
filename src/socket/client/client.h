@@ -30,14 +30,13 @@ static int SERVERPORT = 5098;
 /*
 * Flag of message.
 */
-static char* COUNTEREXAMPLE = "0";
-static char* INTERMEDIATERESULT = "1";
-static char* REQUEST = "2";
+static char* RESULT = "0";
+static char* REQUEST = "1";
 
 /*
 * Send a counter example or intermediate result to the server.
 */
-int sendResult(char* HOSTNAME, int HOSTPORT, char* flag, char* MATRIX, char* MATRIXSIZE, char* feedback);
+int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, char* CLIQUECOUNT, char* feedback);
 
 /*
 * Send a request to the server to get a counter example or an intermediate result.
