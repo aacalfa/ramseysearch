@@ -49,7 +49,7 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, cha
 
 	// Prepare the sending message.
 	//Format RESULT:MATRIXSIZE:CLIQUECOUNT:MATRIX
-	strcpy(msg,RESULT);
+	msg[0] = RESULT;
 	strcat(msg,":");
 	strcat(msg,MATRIXSIZE);
 	strcat(msg,":");
@@ -88,8 +88,7 @@ int sendRequest(char* HOSTNAME, int HOSTPORT, char* feedback) {
 	struct sockaddr_in serv_addr;  //Server Address
 	struct hostent *server;  // Server
 	char readbuffer[READBUFFERSIZE];  //Buffer for message received from server.
-	char* msg; //Message to send.
-	*msg = *REQUEST; //Set the flag of the message to be request.
+	char msg = REQUEST;
 	
 	// Establish Connection to the server.
 	if (HOSTNAME == NULL) {
@@ -118,7 +117,7 @@ int sendRequest(char* HOSTNAME, int HOSTPORT, char* feedback) {
 	}
 	
 	// Send the request.
-	n = write(sockfd, msg, strlen(msg));
+	n = write(sockfd, &msg, sizeof(msg));
 	if (n < 0) {
 		printf("Error: Fail to write to socket");
 		return -1;

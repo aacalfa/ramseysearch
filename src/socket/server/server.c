@@ -15,7 +15,8 @@ typedef struct scheduler {
 	int currCEsize; /* Current best counter example size */
 
 	int *currIN; /* Current best intermediate graph found */
-	int currINsize; /* Current best counter example size */
+	int currINsize; /* Current best intermediate graph size */
+	int currINclcount; /* Current best intermediate result clique count */
 
 	Dllist clients; /* List of all clients currently connected */
 }Scheduler;
@@ -28,6 +29,8 @@ typedef struct clientnode {
 /* Scheduler singleton instance */
 Scheduler *_Scheduler = NULL;
 
+
+static void parseResult(char *pch);
 /*********************
  _                 _ 
 | |   ___  __ __ _| |
@@ -48,10 +51,10 @@ int addClient(int clisockfd, struct sockaddr_in cli_addr) {
 	dll_append(_Scheduler->clients, client);
 }
 
-/* receiveservice
+/* parseMessage
  * Reads message from client and sends acknowledgement to client
  */
-static int receiveservice(int newsockfd, char* result) {
+static int parseMessage(int newsockfd) {
 	char buffer[MATRIXMAXSIZE];
 	int n;
 
@@ -62,7 +65,21 @@ static int receiveservice(int newsockfd, char* result) {
 		printf("Error: failed to read from socket\n");
 		return -1;
 	}
+	char* result = (char*)malloc(strlen(buffer)*sizeof(char));
 	strcpy(result, buffer);
+
+	/* Parse message from client */
+	/* Check first digit of message and verify if it is a
+	 * a result or a request */
+	char *pch;
+	pch = strtok(result, ":");
+	if(pch[0] == RESULT) {
+		/* Parse rest of the message */
+		parseResult(pch);
+	}
+	else if(pch[0] == REQUEST) {
+		
+	}
 
 	/* Send ack to client */
 	char* ack = (char*) malloc(100 * sizeof(char));
@@ -78,16 +95,37 @@ static int receiveservice(int newsockfd, char* result) {
 	return 1;
 }
 
-/* parseMatrix
+/* parseResult
  * Parses a message containing the graph adjacency matrix
  * Message format "[graphsize]:[graph adjacency matrix]"
  */
-static void parseMatrix(char *matrix, int **g, int *gsize) {
-	char *pch;
-	pch = strtok(matrix, ":");
-	*gsize = atoi(pch);
+static void parseResult(char *pch) {
+	/* Get gsize */
 	pch = strtok(NULL, ":");
-	*g = ChartoGraph(pch, *gsize);
+	int gsize = atoi(pch);
+
+	/* Get Clique Count */
+	pch = strtok(NULL, ":");
+	int clCount = atoi(pch);
+
+	/* Get matrix */
+	pch = strtok(NULL, ":");
+	int *g = ChartoGraph(pch, gsize);
+
+	/* Update scheduler */
+	if(clCount == 0) {
+		if(gsize > _Scheduler->currCEsize) { /* Found a counterexample */
+			_Scheduler->currCEsize = gsize;
+			_Scheduler->currCE = g;
+		}
+	}
+	else if (clCount < _Scheduler->currINclcount || gsize > _Scheduler->currINsize) {/* Found an intermediate result */  
+		_Scheduler->currINclcount = clCount;
+		_Scheduler->currINsize = gsize;
+		_Scheduler->currIN = g;
+	}
+
+	printf("gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
 }
 
 /**************************
@@ -122,9 +160,9 @@ int initializeScheduler(void) {
 }
 
 /*
- * Receives a counterExample graph from a client.
+ * Server listens and waits for messages from clients.
  */
-int receiveCounterExample(char* matrix) {
+int waitForMessage(void) {
 	int sockfd, newsockfd, portno;
 	socklen_t clilen;
 	struct sockaddr_in serv_addr, cli_addr;
@@ -166,14 +204,9 @@ int receiveCounterExample(char* matrix) {
 			printf("Error: failed to fork\n");
 		}
 		if (pid == 0)  {
-			int *g;
-			int gsize;
 			close(sockfd);
 			/* Parse message from client */
-			receiveservice(newsockfd, matrix);
-			printf("%s\n", matrix);
-		//	parseMatrix(matrix, &g, &gsize);
-	//		PrintGraph(g, gsize);
+			parseMessage(newsockfd);
 			exit(0);
 		}
 		else {

@@ -20,18 +20,18 @@
 /*
 * The size of read buffer. As large as the matrix size.
 */
-static int READBUFFERSIZE = 220*220;
+#define READBUFFERSIZE 220*220
 
 /*
 * Fixed Server Port.
 */
-static int SERVERPORT = 5098;
+#define SERVERPORT 5098
 
 /*
 * Flag of message.
 */
-static char* RESULT = "0";
-static char* REQUEST = "1";
+#define RESULT '0'
+#define REQUEST '1'
 
 /*
 * Send a counter example or intermediate result to the server.

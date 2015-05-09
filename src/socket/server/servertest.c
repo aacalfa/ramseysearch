@@ -6,9 +6,7 @@
  */
 #include "server.h"
 int main(int argc, char *argv[]) {
-	char* result = (char*)malloc(MATRIXMAXSIZE*sizeof(char));
-
-	receiveCounterExample(result);
-	free(result);
+	initializeScheduler();
+	waitForMessage();
 	return 0;
 }

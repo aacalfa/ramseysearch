@@ -16,11 +16,17 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-static int SERVERPORT = 5098;
-static char* SERVERNAME = "Geurney";
-static int MATRIXMAXSIZE = 210*210;
+#define SERVERPORT 5098
+#define SERVERNAME "Geurney"
+#define MATRIXMAXSIZE 210*210
 
-int receiveCounterExample(char* matrix);
+/*
+* Flag of message.
+*/
+#define RESULT '0'
+#define REQUEST '1'
+
+int waitForMessage(void);
 int initializeScheduler(void);
 
 #endif /* SERVER_SERVER_H_ */
