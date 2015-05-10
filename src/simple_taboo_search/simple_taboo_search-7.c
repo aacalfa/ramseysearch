@@ -35,6 +35,7 @@ main(int argc,char *argv[])
 	int count;
 	int i;
 	int j;
+	int new_count;
 	int best_count;
 	int best_i;
 	int best_j;
@@ -42,7 +43,7 @@ main(int argc,char *argv[])
 	int globalBestCount = BIGCOUNT;
 	int bcIncrease = 0;
 
-#if 0
+#if 1
 	/*
 	 * start with graph of size 8
 	 */
@@ -69,7 +70,7 @@ main(int argc,char *argv[])
 	/*
 	 * start out with all zeros
 	 */
-	//memset(g,0,gsize*gsize*sizeof(int));
+	memset(g,0,gsize*gsize*sizeof(int));
 
 	/*
 	 * while we do not have a publishable result
@@ -79,7 +80,12 @@ main(int argc,char *argv[])
 		/*
 		 * find out how we are doing
 		 */
-		count = CliqueCount(g,gsize);
+		int *ecounts = malloc(gsize*gsize*sizeof(int));
+		if(ecounts == NULL) {
+			printf("ERROR: ran out of memory during malloc of ecounts!\n");
+			exit(1);
+		}
+		count = CliqueCountAll(g,gsize,ecounts);
 
 		/*
 		 * if we have a counter example
@@ -123,6 +129,7 @@ main(int argc,char *argv[])
 			 * throw away the old graph and make new one the
 			 * graph
 			 */
+			free(ecounts);
 			free(g);
 			g = new_g;
 			gsize = gsize+1;
@@ -167,20 +174,25 @@ main(int argc,char *argv[])
 				 * flip it
 				 */
 				g[i*gsize+j] = 1 - g[i*gsize+j];
-				count = CliqueCount(g,gsize);
+
+				/*
+				 * compute the new count based on the edge flip
+				 */
+				//count = CliqueCount(g,gsize);
+				new_count = count - ecounts[i*gsize+j] + CliqueCountEdge(g,gsize,i,j);
 
 				/*
 				 * is it better and the i,j,count not taboo?
 				 */
 #ifdef EDGEONLY
-				if((count < best_count) && 
+				if((new_count < best_count) && 
 					!FIFOFindEdge(taboo_list,i,j))
 #else
-				if((count < best_count) && 
+				if((new_count < best_count) && 
 					!FIFOFindEdgeCount(taboo_list,i,j,count))
 #endif
 				{
-					best_count = count;
+					best_count = new_count;
 					best_i = i;
 					best_j = j;
 				}
@@ -213,9 +225,10 @@ main(int argc,char *argv[])
 		FIFOInsertEdgeCount(taboo_list,best_i,best_j,count);
 #endif
 
-		printf("ce size: %d, best_count: %d, best edge: (%d,%d), new color: %d\n",
+		printf("ce size: %d, best_count: %d, count: %d, best edge: (%d,%d), new color: %d\n",
 			gsize,
 			best_count,
+			count,
 			best_i,
 			best_j,
 			g[best_i*gsize+best_j]);
