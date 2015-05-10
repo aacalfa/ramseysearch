@@ -8,19 +8,19 @@
 #include "client.h"
 
 /*
-* Send a counter example or intermediate result to the server. Flag is to indicate the content. 
-* feedback is a buffer to store message from the server.
-*/
-int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, char* CLIQUECOUNT, char* feedback) {
+ * Send a counter example or intermediate result to the server. Flag is to indicate the content.
+ * feedback is a buffer to store message from the server.
+ */
+int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
+		char* CLIQUECOUNT, char* feedback) {
 	int sockfd; // Socket file describer
 	int portno; // Port Number
 	int n; // Read/Write status flag
 	struct sockaddr_in serv_addr;  //Server Address
 	struct hostent *server;  // Server
 	char readbuffer[READBUFFERSIZE];  //Buffer for message received from server.
-	char* msg = (char*)malloc(READBUFFERSIZE*sizeof(char));   //Message to send.
+	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); //Message to send.
 
-	
 	// Establish Connection to the server.
 	if (HOSTNAME == NULL) {
 		printf("Error: Wrong Hostname!\n");
@@ -50,13 +50,14 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, cha
 	// Prepare the sending message.
 	//Format RESULT:MATRIXSIZE:CLIQUECOUNT:MATRIX
 	msg[0] = RESULT;
-	strcat(msg,":");
-	strcat(msg,MATRIXSIZE);
-	strcat(msg,":");
-	strcat(msg,CLIQUECOUNT);
-	strcat(msg,":");
-	strcat(msg,MATRIX);
-
+	msg[1] = '\0';
+	strcat(msg, ":");
+	strcat(msg, MATRIXSIZE);
+	strcat(msg, ":");
+	strcat(msg, CLIQUECOUNT);
+	strcat(msg, ":");
+	strcat(msg, MATRIX);
+	printf("%s", msg);
 	//Send message
 	n = write(sockfd, msg, strlen(msg));
 	if (n < 0) {
@@ -78,18 +79,18 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, cha
 }
 
 /*
-* Send a request to the server to get a counter example or an intermediate result.
-* feedback is to store the message received from server.
-*/
-int sendRequest(char* HOSTNAME, int HOSTPORT, char* feedback) {
+ * Send a request to the server to get a counter example or an intermediate result.
+ * feedback is to store the message received from server.
+ */
+int sendRequest(char* HOSTNAME, int HOSTPORT, char* MATRIXSIZE, char* feedback) {
 	int sockfd; // Socket file describer
 	int portno; // Port Number
 	int n; // Read/Write status flag
 	struct sockaddr_in serv_addr;  //Server Address
 	struct hostent *server;  // Server
 	char readbuffer[READBUFFERSIZE];  //Buffer for message received from server.
-	char msg = REQUEST;
-	
+	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); //Message to send.
+
 	// Establish Connection to the server.
 	if (HOSTNAME == NULL) {
 		printf("Error: Wrong Hostname!\n");
@@ -115,13 +116,21 @@ int sendRequest(char* HOSTNAME, int HOSTPORT, char* feedback) {
 		printf("Error: Fail to connect\n");
 		return -1;
 	}
-	
-	// Send the request.
-	n = write(sockfd, &msg, sizeof(msg));
+
+	// Prepare the sending message.
+	//Format RESULT:MATRIXSIZE:CLIQUECOUNT:MATRIX
+	msg[0] = REQUEST;
+	msg[1] = '\0';
+	strcat(msg, ":");
+	strcat(msg, MATRIXSIZE);
+	printf("%s", msg);
+	//Send message
+	n = write(sockfd, msg, strlen(msg));
 	if (n < 0) {
 		printf("Error: Fail to write to socket");
 		return -1;
 	}
+	free(msg);
 
 	// Initialize the read buffer
 	bzero(readbuffer, READBUFFERSIZE);

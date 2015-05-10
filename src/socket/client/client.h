@@ -41,6 +41,6 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, cha
 /*
 * Send a request to the server to get a counter example or an intermediate result.
 */
-int sendRequest(char* HOSTNAME, int HOSTPORT, char* feedback);
+int sendRequest(char* HOSTNAME, int HOSTPORT, char* MATRIXSIZE, char* feedback);
 
 #endif /* CLIENT_H_ */

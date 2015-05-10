@@ -19,17 +19,25 @@ int main(int argc, char *argv[]) {
 	
 	size = NumtoString(gsize);
 	counter = NumtoString(gccounter);
-        
+
 	bzero(feedback, READBUFFERSIZE);
 	if(sendResult(hostname, SERVERPORT, matrix, size, counter, feedback)) {
 		printf("%s\n", feedback);
 	}
-	free(matrix);
 
 	bzero(feedback, READBUFFERSIZE);
-	if(sendRequest(hostname, SERVERPORT, feedback)) {
+	if(sendRequest(hostname, SERVERPORT, size, feedback)) {
 		printf("%s\n", feedback);
 	}
+
+	bzero(feedback, READBUFFERSIZE);
+	if(sendResult(hostname, SERVERPORT, matrix, size, counter, feedback)) {
+		printf("%s\n", feedback);
+	}
+
+	free(matrix);
+	free(counter);
+	free(size);
 
 	return 0;
 }
