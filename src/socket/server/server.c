@@ -31,6 +31,8 @@ Scheduler *_Scheduler = NULL;
 
 
 static void parseResult(char *pch);
+static int sendHint(int newsockfd, int workingSize);
+
 /*********************
  _                 _ 
 | |   ___  __ __ _| |
@@ -78,7 +80,10 @@ static int parseMessage(int newsockfd) {
 		parseResult(pch);
 	}
 	else if(pch[0] == REQUEST) {
-		
+		/* Send hint to the client */
+		/* dummy workingSize */
+		int workingSize = 112;
+		int ret = sendHint(newsockfd, workingSize);
 	}
 
 	/* Send ack to client */
@@ -126,6 +131,44 @@ static void parseResult(char *pch) {
 	}
 
 	printf("gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
+}
+
+static int sendHint(int newsockfd, int workingSize) {
+	/* Initialize hint */
+	char* hintGraph = NULL;
+	char *hintGraphSize = NULL;
+	char hintMessage[READBUFFERSIZE];
+
+	/* Hint message structure: [graphsize]:[graphmatrix] */
+
+	/* Decide which hint to send */
+	if(workingSize < _Scheduler->currCEsize) { /* Send counterexample */
+		asprintf(&hintGraphSize, "%d", _Scheduler->currCEsize);
+		hintGraph = GraphtoChar(_Scheduler->currCE, _Scheduler->currCEsize);
+	}
+	else { /* Send intermediate */
+		asprintf(&hintGraphSize, "%d", _Scheduler->currINsize);
+		hintGraph = GraphtoChar(_Scheduler->currIN, _Scheduler->currINsize);
+	}
+	/* Finish building message */
+	strcat(hintMessage, hintGraphSize);
+	strcat(hintMessage, ":");
+	strcat(hintMessage, hintGraph);
+
+	/* just checking */
+	if(hintGraph == NULL) {
+		printf("Error: failed to build hint message.\n");
+		return -1;
+	}
+
+	int n = write(newsockfd, hintMessage, strlen(hintMessage));
+	if (n < 0) {
+		printf("Error: failed to write to socket\n");
+		return -1;
+	}
+
+	/* Free memory */
+	free(hintGraph);
 }
 
 /**************************

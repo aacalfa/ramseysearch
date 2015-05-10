@@ -21,6 +21,11 @@
 #define MATRIXMAXSIZE 210*210
 
 /*
+* The size of read buffer. As large as the matrix size.
+*/
+#define READBUFFERSIZE 220*220
+
+/*
 * Flag of message.
 */
 #define RESULT '0'
