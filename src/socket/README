@@ -11,6 +11,8 @@ By convention, a RESULTFLAG is 0.
 For example,message of an intermediate result with 109 nodes, 56 clique count would be as follows:
   0:109:56:010010001001...
 
-A REQUEST message contains only the request flag. 
-  REQUESTFLAG
+A REQUEST message contains the request flag and matrix size. 
+  REQUESTFLAG:MatrixSize
 By convention, a REQUESTFLAG is 1.
+For example, message of an request with 109 nodes would be as follows:
+  1:109
