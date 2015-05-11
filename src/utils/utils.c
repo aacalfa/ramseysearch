@@ -17,7 +17,7 @@ char* NumtoString(int num)
 	int i = len - 1;
 	int rem;
 	if (num == 0) {
-		size[0] = 0;
+		size[0] = '0';
 	} else {
 		while(num > 0) {
 			rem = num % 10;
