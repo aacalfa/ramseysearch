@@ -20,12 +20,17 @@ int main(int argc, char *argv[]) {
 	if(sendRequest(HOSTNAME, SERVERPORT, size, feedback)) {
 		printf("%s\n", feedback);
 	}
+	char* newSize;
+	char* newCount;
 	
+	g = parseResult(feedback, newSize,newCount);
+	
+	tabooSearch(g, atoi(newSize));
 	
 	// TODO: CLIENT NEEDS TO KNOW HOW TO PARSE THE MESSAGE SENT FROM THE SERVER AFTER CALLING
 	// SENDREQUEST
-	g = ;
-	tabooSearch(g, -1);
+	//g = ;
+	
 
 	free(matrix);
 	free(counter);

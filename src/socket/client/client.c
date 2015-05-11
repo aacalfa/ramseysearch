@@ -8,6 +8,58 @@
 #include "msg.h"
 #include "client.h"
 
+static int* parseResult(char *pch, int* gsize, int* clCount) {
+	/* Get gsize */
+	pch = strtok(NULL, ":");
+	*gsize = atoi(pch);
+
+	/* Get Clique Count */
+	pch = strtok(NULL, ":");
+	*clCount = atoi(pch);
+
+	/* Get matrix */
+	pch = strtok(NULL, ":");
+	int *g = ChartoGraph(pch, gsize);
+	
+	printf("gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
+	return g;
+}
+
+static int parseMessage(char* msg) {
+	/* Parse message from Server */
+	/* Check first digit of message and verify if it is a
+	 * a deny or a request */
+	char *pch;
+	pch = strtok(result, ":");
+	if(pch[0] == RESULT) {
+		/* Parse rest of the message */
+		parseResult(pch);
+	}
+	else if(pch[0] == DENY) {
+		/* Send hint to the client */
+		int workingSize;
+		int hint = parseRequest(pch, &workingSize);
+		int ret;
+		if(hint)
+			ret = sendHint(newsockfd, workingSize);
+		else
+			ret = denyRequest(newsockfd);
+	}
+
+	/* Send ack to client */
+	char* ack = (char*) malloc(100 * sizeof(char));
+	strcpy(ack, SERVERNAME);
+	strcat(ack, " got your message!");
+	n = write(newsockfd, ack, strlen(ack));
+	if (n < 0) {
+		printf("Error: failed to write to socket\n");
+		return -1;
+	}
+	free(ack);
+	close(newsockfd);
+	return 1;
+}
+
 /*
  * Send a counter example or intermediate result to the server. Flag is to indicate the content.
  * feedback is a buffer to store message from the server.
