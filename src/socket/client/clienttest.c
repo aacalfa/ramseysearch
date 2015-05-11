@@ -20,12 +20,12 @@ int main(int argc, char *argv[]) {
 	if(sendRequest(HOSTNAME, SERVERPORT, size, feedback)) {
 		printf("%s\n", feedback);
 	}
-	char* newSize;
-	char* newCount;
+	int* newSize;
+	int* newCount;
 	
 	g = parseMessage(feedback, newSize,newCount);
 	if (g != NULL) {
-		tabooSearch(g, atoi(newSize));
+		tabooSearch(g, *newSize);
 	} else {
 		printf("Deny!\n");
 	}
