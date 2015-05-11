@@ -16,11 +16,15 @@ char* NumtoString(int num)
 	
 	int i = len - 1;
 	int rem;
-	while(num > 0) {
-        rem = num % 10;
-        num = num / 10;
-        size[i--] = rem + '0';
-    }
-    size[len] = '\0';
+	if (num == 0) {
+		size[0] = 0;
+	} else {
+		while(num > 0) {
+			rem = num % 10;
+			num = num / 10;
+			size[i--] = rem + '0';
+		}
+	}
+	size[len] = '\0';
     return size;
 }
