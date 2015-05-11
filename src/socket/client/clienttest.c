@@ -23,9 +23,12 @@ int main(int argc, char *argv[]) {
 	char* newSize;
 	char* newCount;
 	
-	g = parseResult(feedback, newSize,newCount);
-	
-	tabooSearch(g, atoi(newSize));
+	g = parseMessage(feedback, newSize,newCount);
+	if (g != NULL) {
+		tabooSearch(g, atoi(newSize));
+	} else {
+		printf("Deny!\n");
+	}
 	
 	// TODO: CLIENT NEEDS TO KNOW HOW TO PARSE THE MESSAGE SENT FROM THE SERVER AFTER CALLING
 	// SENDREQUEST

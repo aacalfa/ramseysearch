@@ -8,7 +8,7 @@
 #include "msg.h"
 #include "client.h"
 
-static int* parseResult(char *pch, int* gsize, int* clCount) {
+int* parseResult(char *pch, int* gsize, int* clCount) {
 	/* Get gsize */
 	pch = strtok(NULL, ":");
 	*gsize = atoi(pch);
@@ -25,25 +25,19 @@ static int* parseResult(char *pch, int* gsize, int* clCount) {
 	return g;
 }
 
-static int parseMessage(char* msg) {
+int* parseMessage(char* msg, int* gsize, int* clCount) {
 	/* Parse message from Server */
 	/* Check first digit of message and verify if it is a
 	 * a deny or a request */
 	char *pch;
+	int* g = NULL;
 	pch = strtok(result, ":");
 	if(pch[0] == RESULT) {
 		/* Parse rest of the message */
-		parseResult(pch);
+		g = parseResult(pch, gsize, clCount);
 	}
 	else if(pch[0] == DENY) {
-		/* Send hint to the client */
-		int workingSize;
-		int hint = parseRequest(pch, &workingSize);
-		int ret;
-		if(hint)
-			ret = sendHint(newsockfd, workingSize);
-		else
-			ret = denyRequest(newsockfd);
+		//Try to do something
 	}
 
 	/* Send ack to client */
@@ -57,7 +51,7 @@ static int parseMessage(char* msg) {
 	}
 	free(ack);
 	close(newsockfd);
-	return 1;
+	return g;
 }
 
 /*
