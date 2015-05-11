@@ -12,7 +12,7 @@
  * Send a counter example or intermediate result to the server. Flag is to indicate the content.
  * feedback is a buffer to store message from the server.
  */
-int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
+int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
 		char* CLIQUECOUNT, char* feedback) {
 	int sockfd; // Socket file describer
 	int portno; // Port Number
@@ -23,7 +23,7 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
 	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); //Message to send.
 
 	// Establish Connection to the server.
-	if (HOSTNAME == NULL) {
+	if (hostname == NULL) {
 		printf("Error: Wrong Hostname!\n");
 		return -1;
 	}
@@ -33,7 +33,7 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
 		printf("Error: Fail to open socket\n");
 		return -1;
 	}
-	server = gethostbyname(HOSTNAME);
+	server = gethostbyname(hostname);
 	if (server == NULL) {
 		printf("Error: No such host\n");
 		return -1;
@@ -83,7 +83,7 @@ int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
  * Send a request to the server to get a counter example or an intermediate result.
  * feedback is to store the message received from server.
  */
-int sendRequest(char* HOSTNAME, int HOSTPORT, char* MATRIXSIZE, char* feedback) {
+int sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE, char* feedback) {
 	int sockfd; // Socket file describer
 	int portno; // Port Number
 	int n; // Read/Write status flag
@@ -93,7 +93,7 @@ int sendRequest(char* HOSTNAME, int HOSTPORT, char* MATRIXSIZE, char* feedback) 
 	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); //Message to send.
 
 	// Establish Connection to the server.
-	if (HOSTNAME == NULL) {
+	if (hostname == NULL) {
 		printf("Error: Wrong Hostname!\n");
 		return -1;
 	}
@@ -103,7 +103,7 @@ int sendRequest(char* HOSTNAME, int HOSTPORT, char* MATRIXSIZE, char* feedback) 
 		printf("Error: Fail to open socket\n");
 		return -1;
 	}
-	server = gethostbyname(HOSTNAME);
+	server = gethostbyname(hostname);
 	if (server == NULL) {
 		printf("Error: No such host\n");
 		return -1;

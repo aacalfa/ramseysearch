@@ -5,7 +5,6 @@
 #include "taboo_search_client.h"
 
 int main(int argc, char *argv[]) {
-	char* hostname;
 	char* matrix;
 	char feedback[READBUFFERSIZE];
 	int *g;
@@ -13,32 +12,19 @@ int main(int argc, char *argv[]) {
 	int gccounter;
 	char* size;
 	char* counter;
-	
-	hostname = "localhost";
 
-	ReadGraph("n109.txt", &g, &gsize);
-	matrix = GraphtoChar(g,gsize);
-	gccounter = 9;
-	
 	size = NumtoString(gsize);
 	counter = NumtoString(gccounter);
 
 	bzero(feedback, READBUFFERSIZE);
-	if(sendResult(hostname, SERVERPORT, matrix, size, counter, feedback)) {
-		printf("%s\n", feedback);
-	}
-
-	bzero(feedback, READBUFFERSIZE);
-	if(sendRequest(hostname, SERVERPORT, size, feedback)) {
-		printf("%s\n", feedback);
-	}
-
-	bzero(feedback, READBUFFERSIZE);
-	if(sendResult(hostname, SERVERPORT, matrix, size, counter, feedback)) {
+	if(sendRequest(HOSTNAME, SERVERPORT, size, feedback)) {
 		printf("%s\n", feedback);
 	}
 	
-	g = NULL;
+	
+	// TODO: CLIENT NEEDS TO KNOW HOW TO PARSE THE MESSAGE SENT FROM THE SERVER AFTER CALLING
+	// SENDREQUEST
+	g = ;
 	tabooSearch(g, -1);
 
 	free(matrix);

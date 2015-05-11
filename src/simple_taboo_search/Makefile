@@ -1,13 +1,13 @@
 CC = gcc
 TOP = .
-INCLUDES = -I$(TOP)
-CFLAGS = -g -fopenmp
+INCLUDES = -I$(TOP) -I../utils/
+CFLAGS = -g
 COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 
-INCL=./jrb.h ./jval.h ./dllist.h ./fifo.h
+INCL=./jrb.h ./jval.h ./dllist.h ./fifo.h ../utils/msg.h ../utils/utils.h
 COMMON=.
 PRED=.
-BOBJ=$(COMMON)/jval.o $(COMMON)/jrb.o $(COMMON)/dllist.o $(COMMON)/fifo.o $(COMMON)/graph_utils.o $(COMMON)/clique_count.o $(COMMON)/taboo_search_client.o
+BOBJ=$(COMMON)/jval.o $(COMMON)/jrb.o $(COMMON)/dllist.o $(COMMON)/fifo.o $(COMMON)/graph_utils.o $(COMMON)/clique_count.o $(COMMON)/taboo_search_client.o ../utils/utils.o ../socket/client/client.o
 LIBS= -lm 
 
 #PROGRAMS = simple_taboo_search-7 test_clique_count

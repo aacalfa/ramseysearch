@@ -99,8 +99,8 @@ void SaveGraph(int *g, int gsize, char *dir_name)
 	int i;
 	int j;
 
-	char filename[30];
-	sprintf(filename, "../../%s/n%d.txt", dir_name, gsize);
+	char filename[BUFSIZ];
+	sprintf(filename, "%s/n%d.txt", dir_name, gsize);
 	FILE *f = fopen(filename, "w");
 	if (f == NULL)
 	{

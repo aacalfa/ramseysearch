@@ -2,8 +2,7 @@
 #include "graph_utils.h" /* for ReadGraph */
 #include "clique_count.h"
 #include "taboo_search_client.h"
-
-
+#include "msg.h"
 
 /***
  *** example of very simple search for R(7,7) counter examples
@@ -30,20 +29,19 @@ int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -
 	int globalBestCount = BIGCOUNT;
 	int bcIncrease = 0;
 
-	//check whether it has a start point 
-	if(matrixSize==-1) {			// if no, just start from 8
+	/* check whether it has a start point  */
+	if(matrixSize==-1) {			/* if no, just start from 8 */
 		gsize = 8;
 		g = (int *)malloc(gsize*gsize*sizeof(int));
+		if(g == NULL)
+			exit(1);
 		/*
 		* start out with all zeros
 		*/
 		memset(g,0,gsize*gsize*sizeof(int));
-		if(g == NULL) {
-			exit(1);
-		}
-	}else {						//if yes, start with the matrix
+	}else { /* if yes, start with the matrix */
 		gsize = matrixSize;
-	}	
+	}
 	
 	/*
 	 * make a fifo to use as the taboo list
@@ -71,10 +69,16 @@ int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -
 		if(count == 0)
 		{
 			printf("Eureka!  Counter-example found! Number of nodes: %d\n", gsize);
-			//PrintGraph(g,gsize);
 
 			/* Save counterexample into a file */
-			SaveGraph(g,gsize, "counterexamples");
+			SaveGraph(g,gsize, "../../../counterexamples");
+
+			/* Send counterexample to Server */
+			char feedback[READBUFFERSIZE];
+			bzero(feedback, READBUFFERSIZE);
+			if(sendResult(HOSTNAME, SERVERPORT, GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count), feedback)) {
+				printf("%s\n", feedback);
+			}
 
 			/*
 			 * make a new graph one size bigger
@@ -95,11 +99,11 @@ int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -
 			{
 			 /* Last row and column will have a balanced number of 0s and 1s */
 				if(drand48() > 0.5) {
-					new_g[i*(gsize+1) + gsize] = 1; // last column
-					new_g[gsize*(gsize+1) + i] = 1; // last row
+					new_g[i*(gsize+1) + gsize] = 1; /* last column */
+					new_g[gsize*(gsize+1) + i] = 1; /* last row */
 				} else {
-					new_g[i*(gsize+1) + gsize] = 0; // last column
-					new_g[gsize*(gsize+1) + i] = 0; // last row
+					new_g[i*(gsize+1) + gsize] = 0; /* last column */
+					new_g[gsize*(gsize+1) + i] = 0; /* last row */
 				}
 			}
 
@@ -143,7 +147,6 @@ int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -
 		 * notice the indices
 		 */
 		best_count = BIGCOUNT;
-//#pragma omp parallel for private(i,j,count) shared(taboo_list,best_count,best_i,best_j)
 		for(i=0; i < gsize; i++)
 		{
 			for(j=i+1; j < gsize; j++)
@@ -214,7 +217,7 @@ int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -
 		/* Update global best count  and save intermediate result in a file */
 		if(best_count <= globalBestCount) {
 			globalBestCount = best_count;
-			SaveGraph(g,gsize, "intermediate");
+			SaveGraph(g,gsize, "../../../intermediate");
 		}
 		/* If best_count is increasing, it may mean that we reached a local minimum.
 		 * Keep track of how many times best_count increases in value

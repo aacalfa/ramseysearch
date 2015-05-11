@@ -12,6 +12,11 @@
 #define SERVERPORT 5098
 
 /*
+ * Hostname
+ */
+#define HOSTNAME "localhost"
+
+/*
 * Flag of message.
 */
 #define RESULT '0'
