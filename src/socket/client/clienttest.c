@@ -1,6 +1,7 @@
 #include "client.h"
 #include "graph_utils.h"
 #include "utils.h"
+#include "taboo_search_client.h"
 int main(int argc, char *argv[]) {
 	char* hostname;
 	char* matrix;
@@ -34,6 +35,9 @@ int main(int argc, char *argv[]) {
 	if(sendResult(hostname, SERVERPORT, matrix, size, counter, feedback)) {
 		printf("%s\n", feedback);
 	}
+	
+	g = NULL;
+	tabooSearch(g, -1);
 
 	free(matrix);
 	free(counter);
