@@ -27,4 +27,8 @@ int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, cha
 */
 int sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE, char* feedback);
 
+/*
+* Parse the feedback received from the server.
+*/
+static int* parseResult(char *pch, int* gsize, int* clCount);
 #endif /* CLIENT_H_ */
