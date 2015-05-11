@@ -1,6 +1,6 @@
 CC = gcc
-TOP = ../../simple_taboo_search/
-INCLUDES = -I$(TOP) -I../../utils -I../../simple_taboo_search
+TOP =.
+INCLUDES = -I$(TOP) -I../../utils -I../../simple_taboo_search/
 CFLAGS = -g
 COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 
@@ -17,7 +17,7 @@ all: $(PROGRAMS)
 client: client.c $(INCL) ${BOBJ}
 	$(COMPILE) ${INCLUDES} -o client clienttest.c $(BOBJ) $(LIBS)
 
-client.o:
+client.o: client.c ../../simple_taboo_search/graph_utils.h
 	$(COMPILE) ${INCLUDES} -c client.c
 
 clean:

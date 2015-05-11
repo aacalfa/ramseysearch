@@ -3,6 +3,8 @@
 #include "clique_count.h"
 #include "taboo_search_client.h"
 #include "msg.h"
+#include "client.h"
+#include "utils.h"
 
 /***
  *** example of very simple search for R(7,7) counter examples
@@ -30,7 +32,7 @@ int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -
 	int bcIncrease = 0;
 
 	/* check whether it has a start point  */
-	if(matrixSize==-1) {			/* if no, just start from 8 */
+	if(matrixSize <= 0) {			/* if no, just start from 8 */
 		gsize = 8;
 		g = (int *)malloc(gsize*gsize*sizeof(int));
 		if(g == NULL)

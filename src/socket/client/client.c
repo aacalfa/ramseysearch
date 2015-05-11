@@ -5,6 +5,7 @@
  *      Author: geurney
  */
 
+#include "graph_utils.h"
 #include "msg.h"
 #include "client.h"
 
@@ -19,7 +20,7 @@ int* parseResult(char *pch, int* gsize, int* clCount) {
 
 	/* Get matrix */
 	pch = strtok(NULL, ":");
-	int *g = ChartoGraph(pch, gsize);
+	int *g = ChartoGraph(pch, *gsize);
 	
 	printf("gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
 	return g;
@@ -30,7 +31,7 @@ int* parseMessage(char* msg, int* gsize, int* clCount) {
 	/* Check first digit of message and verify if it is a
 	 * a deny or a request */
 	int* g = NULL;
-	char* msg = strtok(result, ":");
+	char* pch = strtok(msg, ":");
 	if(msg[0] == RESULT) {
 		/* Parse rest of the message */
 		g = parseResult(msg, gsize, clCount);
@@ -39,17 +40,6 @@ int* parseMessage(char* msg, int* gsize, int* clCount) {
 		//Try to do something
 	}
 
-	/* Send ack to client */
-	char* ack = (char*) malloc(100 * sizeof(char));
-	strcpy(ack, SERVERNAME);
-	strcat(ack, " got your message!");
-	n = write(newsockfd, ack, strlen(ack));
-	if (n < 0) {
-		printf("Error: failed to write to socket\n");
-		return -1;
-	}
-	free(ack);
-	close(newsockfd);
 	return g;
 }
 
@@ -164,7 +154,7 @@ int sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE, char* feedback) 
 	}
 
 	// Prepare the sending message.
-	//Format RESULT:MATRIXSIZE:CLIQUECOUNT:MATRIX
+	//Format REQUEST:MATRIXSIZE
 	msg[0] = REQUEST;
 	msg[1] = '\0';
 	strcat(msg, ":");

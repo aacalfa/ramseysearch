@@ -93,16 +93,6 @@ static int parseMessage(int newsockfd) {
 			ret = denyRequest(newsockfd);
 	}
 
-	/* Send ack to client */
-	char* ack = (char*) malloc(100 * sizeof(char));
-	strcpy(ack, SERVERNAME);
-	strcat(ack, " got your message!");
-	n = write(newsockfd, ack, strlen(ack));
-	if (n < 0) {
-		printf("Error: failed to write to socket\n");
-		return -1;
-	}
-	free(ack);
 	close(newsockfd);
 	return 1;
 }
@@ -175,23 +165,31 @@ static int sendHint(int newsockfd, int workingSize) {
 	char* hintGraph = NULL;
 	char *hintGraphSize = NULL;
 	char hintMessage[READBUFFERSIZE];
+	char cliqueCount[BUFSIZ];
 
-	/* Hint message structure: [graphsize]:[graphmatrix] */
+	/* Hint message structure: [result flag]:[matrixsize]:[cliquecount]:[graphmatrix] */
 
 	/* Decide which hint to send */
 	if(workingSize < _Scheduler->currCEsize) { /* Send counterexample */
 		asprintf(&hintGraphSize, "%d", _Scheduler->currCEsize);
 		hintGraph = GraphtoChar(_Scheduler->currCE, _Scheduler->currCEsize);
+		sprintf(cliqueCount, "%d", 0);
 	}
 	else { /* Send intermediate */
 		asprintf(&hintGraphSize, "%d", _Scheduler->currINsize);
 		hintGraph = GraphtoChar(_Scheduler->currIN, _Scheduler->currINsize);
+		sprintf(cliqueCount, "%d", _Scheduler->currINclcount);
 	}
 	/* Finish building message */
+	hintMessage[0] = RESULT;
+	hintMessage[1] = '\0';
+	strcat(hintMessage, ":");
 	strcat(hintMessage, hintGraphSize);
 	strcat(hintMessage, ":");
+	strcat(hintMessage, cliqueCount);
+	strcat(hintMessage, ":");
 	strcat(hintMessage, hintGraph);
-
+	
 	/* just checking */
 	if(hintGraph == NULL) {
 		printf("Error: failed to build hint message.\n");

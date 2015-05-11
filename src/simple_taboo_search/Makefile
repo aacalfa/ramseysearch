@@ -1,10 +1,10 @@
 CC = gcc
 TOP = .
-INCLUDES = -I$(TOP) -I../utils/
+INCLUDES = -I$(TOP) -I../utils/ -I../socket/client
 CFLAGS = -g
 COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 
-INCL=./jrb.h ./jval.h ./dllist.h ./fifo.h ../utils/msg.h ../utils/utils.h
+INCL=./jrb.h ./jval.h ./dllist.h ./fifo.h ../utils/msg.h ../utils/utils.h ../socket/client/client.h
 COMMON=.
 PRED=.
 BOBJ=$(COMMON)/jval.o $(COMMON)/jrb.o $(COMMON)/dllist.o $(COMMON)/fifo.o $(COMMON)/graph_utils.o $(COMMON)/clique_count.o $(COMMON)/taboo_search_client.o ../utils/utils.o ../socket/client/client.o
@@ -27,7 +27,7 @@ sim_annealing: sim_annealing.c $(INCL) ${BOBJ}
 fifo.o: fifo.c fifo.h jrb.h jval.h dllist.h
 	$(COMPILE) ${INCLUDES} -c fifo.c
 
-taboo_search_client.o: fifo.h graph_utils.h clique_count.h taboo_search_client.h
+taboo_search_client.o: taboo_search_client.c fifo.h graph_utils.h clique_count.h taboo_search_client.h
 	$(COMPILE) ${INCLUDES} -c taboo_search_client.c
 
 jrb.o: jrb.c jrb.h jval.h
