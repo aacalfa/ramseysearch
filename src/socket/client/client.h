@@ -18,22 +18,6 @@
 #include <netdb.h>
 
 /*
-* The size of read buffer. As large as the matrix size.
-*/
-#define READBUFFERSIZE 220*220
-
-/*
-* Fixed Server Port.
-*/
-#define SERVERPORT 5098
-
-/*
-* Flag of message.
-*/
-#define RESULT '0'
-#define REQUEST '1'
-
-/*
 * Send a counter example or intermediate result to the server.
 */
 int sendResult(char* HOSTNAME, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, char* CLIQUECOUNT, char* feedback);

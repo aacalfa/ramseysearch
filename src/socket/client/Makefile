@@ -1,13 +1,13 @@
 CC = gcc
 TOP = ../../simple_taboo_search/
-INCLUDES = -I$(TOP) -I../../utils
+INCLUDES = -I$(TOP) -I../../utils -I../../simple_taboo_search
 CFLAGS = -g
 COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 
 INCL=../../simple_taboo_search/graph_utils.h ../../utils/utils.h ../../utils/msg.h
 COMMON=../../simple_taboo_search
 PRED=.
-BOBJ=$(COMMON)/graph_utils.o ../../utils/utils.o
+BOBJ=$(COMMON)/graph_utils.o ../../utils/utils.o $(COMMON)/taboo_search_client.o $(COMMON)/fifo.o $(COMMON)/jrb.o $(COMMON)/jval.o $(COMMON)/dllist.o $(COMMON)/clique_count.o
 LIBS= -lm 
 
 PROGRAMS = client
