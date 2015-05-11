@@ -29,14 +29,13 @@ int* parseMessage(char* msg, int* gsize, int* clCount) {
 	/* Parse message from Server */
 	/* Check first digit of message and verify if it is a
 	 * a deny or a request */
-	char *pch;
 	int* g = NULL;
-	pch = strtok(result, ":");
-	if(pch[0] == RESULT) {
+	char* msg = strtok(result, ":");
+	if(msg[0] == RESULT) {
 		/* Parse rest of the message */
-		g = parseResult(pch, gsize, clCount);
+		g = parseResult(msg, gsize, clCount);
 	}
-	else if(pch[0] == DENY) {
+	else if(msg[0] == DENY) {
 		//Try to do something
 	}
 
