@@ -23,4 +23,9 @@
 #define REQUEST '1'
 #define DENY '2'
 
+/*
+ * Server name.
+ */
+#define SERVERNAME "Gold Diggers"
+
 #endif /* MSG_H_ */

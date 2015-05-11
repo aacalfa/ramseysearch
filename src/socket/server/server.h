@@ -16,7 +16,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define SERVERNAME "Geurney"
 #define MATRIXMAXSIZE 210*210
 
 int waitForMessage(void);
