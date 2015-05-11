@@ -1,6 +1,8 @@
+#include "msg.h"
 #include "client.h"
 #include "graph_utils.h"
 #include "utils.h"
+
 int main(int argc, char *argv[]) {
 	char* hostname;
 	char* matrix;

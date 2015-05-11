@@ -4,7 +4,7 @@ INCLUDES = -I$(TOP) -I../../utils
 CFLAGS = -g
 COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 
-INCL=../../simple_taboo_search/graph_utils.h ../../utils/utils.h
+INCL=../../simple_taboo_search/graph_utils.h ../../utils/utils.h ../../utils/msg.h
 COMMON=../../simple_taboo_search
 PRED=.
 BOBJ=$(COMMON)/graph_utils.o ../../utils/utils.o

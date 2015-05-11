@@ -5,6 +5,7 @@
  *      Author: geurney
  */
 
+#include "msg.h"
 #include "client.h"
 
 /*

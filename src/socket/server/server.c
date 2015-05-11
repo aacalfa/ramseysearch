@@ -9,6 +9,7 @@
 #include "graph_utils.h"
 #include "dllist.h"
 #include "jval.h"
+#include "msg.h"
 
 typedef struct scheduler {
 	int *currCE; /* Current best counter example found */
@@ -31,7 +32,9 @@ Scheduler *_Scheduler = NULL;
 
 
 static void parseResult(char *pch);
+static int parseRequest(char *pch, int *workingSize);
 static int sendHint(int newsockfd, int workingSize);
+static int denyRequest(int newsockfd);
 
 /*********************
  _                 _ 
@@ -81,9 +84,13 @@ static int parseMessage(int newsockfd) {
 	}
 	else if(pch[0] == REQUEST) {
 		/* Send hint to the client */
-		/* dummy workingSize */
-		int workingSize = 112;
-		int ret = sendHint(newsockfd, workingSize);
+		int workingSize;
+		int hint = parseRequest(pch, &workingSize);
+		int ret;
+		if(hint)
+			ret = sendHint(newsockfd, workingSize);
+		else
+			ret = denyRequest(newsockfd);
 	}
 
 	/* Send ack to client */
@@ -98,6 +105,24 @@ static int parseMessage(int newsockfd) {
 	free(ack);
 	close(newsockfd);
 	return 1;
+}
+
+/* parseRequest
+ * Parses a message containing a request message from client
+ * Message format "[requestflag]:[working graph size]"
+ * Returns 1 if a hint should be sent to the client.
+ * Returns 0 if no good hint can be provided.
+ */
+static int parseRequest(char *pch, int *workingSize) {
+	/* Get working size */
+	pch = strtok(NULL, ":");
+	*workingSize = atoi(pch);
+
+	/* Decide whether to send a hint or not */
+	if(*workingSize < _Scheduler->currCEsize) /* Can send a hint to the client */
+		return 1;
+	else/* Found an intermediate result */  
+		return 0;
 }
 
 /* parseResult
@@ -131,6 +156,18 @@ static void parseResult(char *pch) {
 	}
 
 	printf("gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
+}
+
+static int denyRequest(int newsockfd) {
+	char msg[2];
+	msg[0] = DENY;
+	msg[1] = '\0';
+
+	int n = write(newsockfd, msg, strlen(msg));
+	if (n < 0) {
+		printf("Error: failed to write to socket\n");
+		return -1;
+	}
 }
 
 static int sendHint(int newsockfd, int workingSize) {
