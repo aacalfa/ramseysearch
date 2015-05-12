@@ -6,9 +6,10 @@
 #include "graph_utils.h"
 #include "utils.h"
 #include "taboo_search_client.h"
+#include "clique_count.h"
 
 int main(int argc, char *argv[]) {
-	char feedback[READBUFFERSIZE];
+	char *feedback;
 	int *g = NULL; /* graph adjacency matrix */
 	int gsize = 0; /* initialize working graph size */
 	int gccounter = INT_MAX; /* initialize clique count */
@@ -24,25 +25,25 @@ int main(int argc, char *argv[]) {
 	gethostname(hostname, 1023);
 	fprintf(stderr, "Hello, %s! Local time is: %s\n", hostname, asctime(localtime(&t)));
 	fprintf(stderr, "Attempting to connect to server: %s ...\n", SERVERNAME);
-	
-	bzero(feedback, READBUFFERSIZE);
-	if(sendRequest(HOSTNAME, SERVERPORT, size, feedback) == 1)
+
+	feedback = sendRequest(HOSTNAME, SERVERPORT, size);
+	if(feedback != NULL)
 		fprintf(stderr, "Connection established!\n");
 	else
 		fprintf(stderr, "Connection could not be established! Starting the search from small graph size.\n");
 
-
-	int newSize;
-	int newCount;
-	
+	int newSize = 0;
+	int newCount = 0;
 	g = parseMessage(feedback, &newSize, &newCount);
+
+	/* Free memory */
+	free(feedback);
+	free(size);
 
 	fprintf(stderr, "Starting point is: gsize = %d cliquecount = %d\n", newSize, newCount);
 
 	/* Start the search */
 	tabooSearch(g, newSize);
-
-	free(size);
 
 	return 0;
 }

@@ -16,7 +16,7 @@
  *** (i,j)+clique_count
  ***/
 
-int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -1
+int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -1 */
 {
 	int *new_g;
 	int gsize;
@@ -32,7 +32,7 @@ int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -
 	int bcIncrease = 0;
 
 	/* check whether it has a start point  */
-	if(matrixSize <= 0) {			/* if no, just start from 8 */
+	if(matrixSize <= 0) { /* if no, just start from 8 */
 		gsize = 8;
 		g = (int *)malloc(gsize*gsize*sizeof(int));
 		if(g == NULL)
@@ -64,7 +64,6 @@ int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -
 			exit(1);
 		}
 		count = CliqueCountAll(g,gsize,ecounts);
-
 		/*
 		 * if we have a counter example
 		 */
@@ -76,11 +75,7 @@ int tabooSearch(int *g, int matrixSize)		//when no matrix, input matrixSize as -
 			SaveGraph(g,gsize, "../../../counterexamples");
 
 			/* Send counterexample to Server */
-			char feedback[READBUFFERSIZE];
-			bzero(feedback, READBUFFERSIZE);
-			if(sendResult(HOSTNAME, SERVERPORT, GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count), feedback)) {
-				printf("%s\n", feedback);
-			}
+			int ret = sendResult(HOSTNAME, SERVERPORT, GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count));
 
 			/*
 			 * make a new graph one size bigger

@@ -47,13 +47,12 @@ int* parseMessage(char* msg, int* gsize, int* clCount) {
  * feedback is a buffer to store message from the server.
  */
 int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
-		char* CLIQUECOUNT, char* feedback) {
+		char* CLIQUECOUNT) {
 	int sockfd; /* Socket file describer */
 	int portno; /* Port Number */
 	int n; /* Read/Write status flag */
 	struct sockaddr_in serv_addr;  /* Server Address */
 	struct hostent *server;  /* Server */
-	char readbuffer[READBUFFERSIZE];  /* Buffer for message received from server. */
 	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); /* Message to send. */
 
 	/* Establish Connection to the server. */
@@ -101,15 +100,7 @@ int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
 	}
 	free(msg);
 
-	/* Initialize the read buffer */
-	bzero(readbuffer, READBUFFERSIZE);
-	/* Read message from the server. */
-	n = read(sockfd, readbuffer, READBUFFERSIZE - 1);
-	if (n < 0) {
-		printf("Error: Fail to read from socket");
-	}
 	close(sockfd);
-	strcpy(feedback, readbuffer);
 	return 1;
 }
 
@@ -117,30 +108,30 @@ int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
  * Send a request to the server to get a counter example or an intermediate result.
  * feedback is to store the message received from server.
  */
-int sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE, char* feedback) {
+char* sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE) {
 	int sockfd; /* Socket file describer */
 	int portno; /* Port Number */
 	int n; /* Read/Write status flag */
 	struct sockaddr_in serv_addr;  /* Server Address */
 	struct hostent *server;  /* Server */
-	char readbuffer[READBUFFERSIZE];  /* Buffer for message received from server. */
+	char readbuffer[BUFSIZ];  /* Buffer for message received from server. */
 	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); /* Message to send. */
 
 	/* Establish Connection to the server. */
 	if (hostname == NULL) {
 		printf("Error: Wrong Hostname!\n");
-		return -1;
+		return NULL;
 	}
 	portno = HOSTPORT;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) {
 		printf("Error: Fail to open socket\n");
-		return -1;
+		return NULL;
 	}
 	server = gethostbyname(hostname);
 	if (server == NULL) {
 		printf("Error: No such host\n");
-		return -1;
+		return NULL;
 	}
 	bzero((char *) &serv_addr, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
@@ -149,7 +140,7 @@ int sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE, char* feedback) 
 	if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))
 			< 0) {
 		printf("Error: Fail to connect\n");
-		return -1;
+		return NULL;
 	}
 
 	/* Prepare the sending message. */
@@ -163,20 +154,32 @@ int sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE, char* feedback) 
 	n = write(sockfd, msg, strlen(msg));
 	if (n < 0) {
 		printf("Error: Fail to write to socket");
-		return -1;
+		return NULL;
 	}
 	free(msg);
 
 	/* Initialize the read buffer */
-	bzero(readbuffer, READBUFFERSIZE);
+	bzero(readbuffer, BUFSIZ);
 	/* Read message from the server. */
-	//TODO: MESSAGES THAT ARE TOO BIG ARE SENT PACKET BY PACKET,
-	//WRITE A LOOP TO GET THE WHOLE MESSAGE AND ADD IT TO THE BUFFER.
-	n = read(sockfd, readbuffer, READBUFFERSIZE - 1);
-	if (n < 0) {
-		printf("Error: Fail to read from socket");
-	}
+	char *wholeMessage = (char*) malloc(READBUFFERSIZE*sizeof(char));
+	do {
+		n = read(sockfd, readbuffer, BUFSIZ);
+		if (n < 0)
+			printf("Error: Fail to read from socket");
+		else {
+			/* append to wholeMessage */
+			strcat(wholeMessage, readbuffer);
+			/* Clear buffer before reading next chunk */
+			memset(readbuffer, 0, BUFSIZ);
+		}
+	}while(n > 0);
+
 	close(sockfd);
-	strcpy(feedback, readbuffer);
-	return 1;
+	char* feedback = (char*)malloc(strlen(readbuffer)*sizeof(char));
+	feedback = strdup(wholeMessage);
+
+	/* Free memory */
+	free(wholeMessage);
+
+	return feedback;
 }
