@@ -10,6 +10,7 @@
 #include "dllist.h"
 #include "jval.h"
 #include "msg.h"
+#include "clique_count.h"
 
 typedef struct scheduler {
 	int *currCE; /* Current best counter example found */
@@ -60,25 +61,42 @@ int addClient(int clisockfd, struct sockaddr_in cli_addr) {
  * Reads message from client and sends acknowledgement to client
  */
 static int parseMessage(int newsockfd) {
-	char buffer[MATRIXMAXSIZE];
+	char buffer[BUFSIZ];
 	int n;
 
 	/* Puts message into buffer */
 	char *wholeMessage = (char*) malloc(READBUFFERSIZE*sizeof(char));
-	bzero(buffer, MATRIXMAXSIZE);
-	do {
-		n = read(newsockfd, buffer, MATRIXMAXSIZE);
-		if (n < 0) {
-			printf("Error: failed to read from socket\n");
-			return -1;
-		}
-		else {
-			/* append to wholeMessage */
-			strcat(wholeMessage, buffer);
-		}
-	} while(n > 0);
+	bzero(buffer, BUFSIZ);
+	n = read(newsockfd, buffer, BUFSIZ);
+	if (n < 0) {
+		printf("Error: failed to read from socket\n");
+		return -1;
+	}
+	/* reading a result message, must call read several times */
+	else if(n > 10) {
+		/* append to wholeMessage */
+		strcat(wholeMessage, buffer);
+		do {
+			n = read(newsockfd, buffer, BUFSIZ);
+			if (n < 0) {
+				printf("Error: failed to read from socket\n");
+				return -1;
+			}
+			else {
+				/* append to wholeMessage */
+				strcat(wholeMessage, buffer);
+			}
+		} while(n > 0);
+	}
+	/* reading a request message, one read is enough */
+	else {
+		strcpy(wholeMessage, buffer);
+	}
 	char* result = (char*)malloc(strlen(buffer)*sizeof(char));
-	strcpy(result, wholeMessage);
+	result = strdup(wholeMessage);
+
+	/* Free result */
+	free(wholeMessage);
 
 	/* Parse message from client */
 	/* Check first digit of message and verify if it is a
@@ -103,7 +121,7 @@ static int parseMessage(int newsockfd) {
 	close(newsockfd);
 
 	/* Free memory */
-	free(wholeMessage);
+	free(result);
 	return 1;
 }
 
@@ -142,14 +160,26 @@ static void parseResult(char *pch) {
 	pch = strtok(NULL, ":");
 	int *g = ChartoGraph(pch, gsize);
 
+	/* Verify integrity of g */
+	int realCount = CliqueCount(g, gsize);
+
+	/* Message is invalid */
+	if (realCount != clCount) {
+		fprintf(stderr, "Message could not be validated!\n");
+		fprintf(stderr, "Clique count from message: %d, actual clique count: %d!\n", clCount, realCount);
+		return;
+	}
+
 	/* Update scheduler */
 	if(clCount == 0) {
 		if(gsize > _Scheduler->currCEsize) { /* Found a counterexample */
+			fprintf(stderr, "Counterexample successfully received!\n");
 			_Scheduler->currCEsize = gsize;
 			_Scheduler->currCE = g;
 		}
 	}
 	else if (clCount < _Scheduler->currINclcount || gsize > _Scheduler->currINsize) {/* Found an intermediate result */  
+		fprintf(stderr, "Intermediate result successfully received!\n");
 		_Scheduler->currINclcount = clCount;
 		_Scheduler->currINsize = gsize;
 		_Scheduler->currIN = g;
@@ -211,7 +241,6 @@ static int sendHint(int newsockfd, int workingSize) {
 		printf("Error: failed to write to socket\n");
 		return -1;
 	}
-
 	/* Free memory */
 	free(hintGraph);
 }
@@ -239,6 +268,7 @@ int initializeScheduler(void) {
 		_Scheduler->clients = new_dllist();
 		/* Load best graph counterexample */
 		ReadGraph("../../../counterexamples/n111.txt", &(_Scheduler->currCE), &(_Scheduler->currCEsize));
+//		ReadGraph("../../../counterexamples/n8.txt", &(_Scheduler->currCE), &(_Scheduler->currCEsize));
 		/* Load best intermediate counterexample */
 		ReadGraph("../../../intermediate/n112.txt", &(_Scheduler->currIN), &(_Scheduler->currINsize));
 		return 0;
