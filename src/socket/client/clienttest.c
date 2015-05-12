@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 	hostname[1023] = '\0';
 	gethostname(hostname, 1023);
 	fprintf(stderr, "Hello, %s! Local time is: %s\n", hostname, asctime(localtime(&t)));
-	fprintf(stderr, "Attempting to connect to server: %s ...\n", SERVERNAME, asctime(localtime(&t)));
+	fprintf(stderr, "Attempting to connect to server: %s ...\n", SERVERNAME);
 	
 	bzero(feedback, READBUFFERSIZE);
 	if(sendRequest(HOSTNAME, SERVERPORT, size, feedback) == 1)
