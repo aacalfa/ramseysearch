@@ -74,7 +74,7 @@ static int parseMessage(int newsockfd) {
 		}
 		else {
 			/* append to wholeMessage */
-			strcat(wholeMessage, readbuffer);
+			strcat(wholeMessage, buffer);
 		}
 	} while(n > 0);
 	char* result = (char*)malloc(strlen(buffer)*sizeof(char));
