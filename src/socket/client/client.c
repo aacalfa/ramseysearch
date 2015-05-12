@@ -170,6 +170,8 @@ int sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE, char* feedback) 
 	/* Initialize the read buffer */
 	bzero(readbuffer, READBUFFERSIZE);
 	/* Read message from the server. */
+	//TODO: MESSAGES THAT ARE TOO BIG ARE SENT PACKET BY PACKET,
+	//WRITE A LOOP TO GET THE WHOLE MESSAGE AND ADD IT TO THE BUFFER.
 	n = read(sockfd, readbuffer, READBUFFERSIZE - 1);
 	if (n < 0) {
 		printf("Error: Fail to read from socket");
