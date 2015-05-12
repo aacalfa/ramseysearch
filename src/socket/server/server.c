@@ -64,14 +64,21 @@ static int parseMessage(int newsockfd) {
 	int n;
 
 	/* Puts message into buffer */
+	char *wholeMessage = (char*) malloc(READBUFFERSIZE*sizeof(char));
 	bzero(buffer, MATRIXMAXSIZE);
-	n = read(newsockfd, buffer, MATRIXMAXSIZE);
-	if (n < 0) {
-		printf("Error: failed to read from socket\n");
-		return -1;
-	}
+	do {
+		n = read(newsockfd, buffer, MATRIXMAXSIZE);
+		if (n < 0) {
+			printf("Error: failed to read from socket\n");
+			return -1;
+		}
+		else {
+			/* append to wholeMessage */
+			strcat(wholeMessage, readbuffer);
+		}
+	} while(n > 0);
 	char* result = (char*)malloc(strlen(buffer)*sizeof(char));
-	strcpy(result, buffer);
+	strcpy(result, wholeMessage);
 
 	/* Parse message from client */
 	/* Check first digit of message and verify if it is a
@@ -94,6 +101,9 @@ static int parseMessage(int newsockfd) {
 	}
 
 	close(newsockfd);
+
+	/* Free memory */
+	free(wholeMessage);
 	return 1;
 }
 
