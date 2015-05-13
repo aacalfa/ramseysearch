@@ -55,20 +55,23 @@ int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
 	struct hostent *server;  /* Server */
 	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); /* Message to send. */
 
+	/* Initialize msg */
+	memset(msg, 0, READBUFFERSIZE);
+
 	/* Establish Connection to the server. */
 	if (hostname == NULL) {
-		printf("Error: Wrong Hostname!\n");
+		fprintf(stderr,"Error: Wrong Hostname!\n");
 		return -1;
 	}
 	portno = HOSTPORT;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) {
-		printf("Error: Fail to open socket\n");
+		fprintf(stderr,"Error: Fail to open socket\n");
 		return -1;
 	}
 	server = gethostbyname(hostname);
 	if (server == NULL) {
-		printf("Error: No such host\n");
+		fprintf(stderr,"Error: No such host\n");
 		return -1;
 	}
 	bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -77,7 +80,7 @@ int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
 	serv_addr.sin_port = htons(portno);
 	if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))
 			< 0) {
-		printf("Error: Fail to connect\n");
+		fprintf(stderr,"Error: Fail to connect\n");
 		return -1;
 	}
 
@@ -94,7 +97,7 @@ int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
 	/* Send message */
 	n = write(sockfd, msg, strlen(msg));
 	if (n < 0) {
-		printf("Error: Fail to write to socket");
+		fprintf(stderr,"Error: Fail to write to socket");
 		return -1;
 	}
 	free(msg);
@@ -118,18 +121,18 @@ char* sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE) {
 
 	/* Establish Connection to the server. */
 	if (hostname == NULL) {
-		printf("Error: Wrong Hostname!\n");
+		fprintf(stderr,"Error: Wrong Hostname!\n");
 		return NULL;
 	}
 	portno = HOSTPORT;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) {
-		printf("Error: Fail to open socket\n");
+		fprintf(stderr,"Error: Fail to open socket\n");
 		return NULL;
 	}
 	server = gethostbyname(hostname);
 	if (server == NULL) {
-		printf("Error: No such host\n");
+		fprintf(stderr,"Error: No such host\n");
 		return NULL;
 	}
 	bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -138,7 +141,7 @@ char* sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE) {
 	serv_addr.sin_port = htons(portno);
 	if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))
 			< 0) {
-		printf("Error: Fail to connect\n");
+		fprintf(stderr,"Error: Fail to connect\n");
 		return NULL;
 	}
 
@@ -151,20 +154,29 @@ char* sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE) {
 	/* Send message */
 	n = write(sockfd, msg, strlen(msg));
 	if (n < 0) {
-		printf("Error: Fail to write to socket");
+		fprintf(stderr,"Error: Fail to write to socket");
 		return NULL;
 	}
 	free(msg);
 
 	/* Initialize the read buffer */
 	memset(readbuffer, 0, BUFSIZ);
-	/* Read message from the server. */
+
+	/* Because the message sent from the server can be large,
+	 * we must read it in chunks. wholeMessage will aggregate
+	 * all packets sent from the server.
+	 */
 	char *wholeMessage = (char*) malloc(READBUFFERSIZE*sizeof(char));
+	memset(wholeMessage, 0, READBUFFERSIZE);
+
+	/* Read message from the server. */
 	do {
 		n = read(sockfd, readbuffer, BUFSIZ);
 		if (n < 0)
-			printf("Error: Fail to read from socket");
+			fprintf(stderr,"Error: Fail to read from socket");
 		else {
+			/* Discard garbage at the end */
+			readbuffer[n] = '\0';
 			/* append to wholeMessage */
 			strcat(wholeMessage, readbuffer);
 			/* Clear buffer before reading next chunk */

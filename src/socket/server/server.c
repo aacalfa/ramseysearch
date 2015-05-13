@@ -58,35 +58,46 @@ int addClient(int clisockfd, struct sockaddr_in cli_addr) {
 }
 
 /* parseMessage
- * Reads message from client and sends acknowledgement to client
+ * Reads message from client
  */
 static int parseMessage(int newsockfd) {
 	char buffer[BUFSIZ];
 	int n;
 
-	/* Puts message into buffer */
+	/* Initialize buffers */
 	char *wholeMessage = (char*) malloc(READBUFFERSIZE*sizeof(char));
-	bzero(buffer, BUFSIZ);
+	memset(wholeMessage, 0, READBUFFERSIZE);
+	memset(buffer, 0, BUFSIZ);
+
+	/* Start reading */
 	n = read(newsockfd, buffer, BUFSIZ);
 	if (n < 0) {
-		printf("Error: failed to read from socket\n");
+		fprintf(stderr,"Error: failed to read from socket\n");
 		return -1;
 	}
 	/* reading a result message, must call read several times */
 	else if(n > 10) {
+		/* Discard garbage at the end */
+		buffer[n] = '\0';
+
 		/* append to wholeMessage */
 		strcat(wholeMessage, buffer);
+
 		/* Clear buffer before reading next chunk */
 		memset(buffer, 0, BUFSIZ);
 		do {
 			n = read(newsockfd, buffer, BUFSIZ);
 			if (n < 0) {
-				printf("Error: failed to read from socket\n");
+				fprintf(stderr,"Error: failed to read from socket\n");
 				return -1;
 			}
 			else {
+				/* Discard garbage at the end */
+				buffer[n] = '\0';
+
 				/* append to wholeMessage */
 				strcat(wholeMessage, buffer);
+
 				/* Clear buffer before reading next chunk */
 				memset(buffer, 0, BUFSIZ);
 			}
@@ -96,11 +107,11 @@ static int parseMessage(int newsockfd) {
 	else {
 		strcpy(wholeMessage, buffer);
 	}
-	char* result = (char*)malloc(strlen(buffer)*sizeof(char));
-	result = strdup(wholeMessage);
+	char* result = strdup(wholeMessage);
 
-	/* Free result */
+	/* Free wholeMessage */
 	free(wholeMessage);
+
 
 	/* Parse message from client */
 	/* Check first digit of message and verify if it is a
@@ -189,7 +200,7 @@ static void parseResult(char *pch) {
 		_Scheduler->currIN = g;
 	}
 
-	printf("gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
+	fprintf(stderr,"gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
 }
 
 static int denyRequest(int newsockfd) {
@@ -199,7 +210,7 @@ static int denyRequest(int newsockfd) {
 
 	int n = write(newsockfd, msg, strlen(msg));
 	if (n < 0) {
-		printf("Error: failed to write to socket\n");
+		fprintf(stderr,"Error: failed to write to socket\n");
 		return -1;
 	}
 }
@@ -235,13 +246,13 @@ static int sendHint(int newsockfd, int workingSize) {
 
 	/* just checking */
 	if(hintGraph == NULL) {
-		printf("Error: failed to build hint message.\n");
+		fprintf(stderr,"Error: failed to build hint message.\n");
 		return -1;
 	}
 
 	int n = write(newsockfd, hintMessage, strlen(hintMessage));
 	if (n < 0) {
-		printf("Error: failed to write to socket\n");
+		fprintf(stderr,"Error: failed to write to socket\n");
 		return -1;
 	}
 	/* Free memory */
@@ -291,7 +302,7 @@ int waitForMessage(void) {
 	/* Create a new socket */
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) {
-		printf("Error: failed to open socket\n");
+		fprintf(stderr,"Error: failed to open socket\n");
 		return -1;
 	}
 
@@ -304,7 +315,7 @@ int waitForMessage(void) {
 
 	/* Attempt to bind the socket to the host address */
 	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-		printf("Error: failed to bind\n");
+		fprintf(stderr,"Error: failed to bind\n");
 		return -1;
 	}
 	/* handle at most 5 connections */
@@ -315,14 +326,14 @@ int waitForMessage(void) {
 	 /* Block until a client connects */
 		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 		if (newsockfd < 0) {
-			printf("Error: failed to accept\n");
+			fprintf(stderr,"Error: failed to accept\n");
 			return -1;
 		}
 
 		/* Create process to handle client message */
 		int pid = fork();
 		if (pid < 0) {
-			printf("Error: failed to fork\n");
+			fprintf(stderr,"Error: failed to fork\n");
 		}
 		if (pid == 0)  {
 			close(sockfd);
