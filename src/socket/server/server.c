@@ -76,6 +76,8 @@ static int parseMessage(int newsockfd) {
 	else if(n > 10) {
 		/* append to wholeMessage */
 		strcat(wholeMessage, buffer);
+		/* Clear buffer before reading next chunk */
+		memset(buffer, 0, BUFSIZ);
 		do {
 			n = read(newsockfd, buffer, BUFSIZ);
 			if (n < 0) {
@@ -85,6 +87,8 @@ static int parseMessage(int newsockfd) {
 			else {
 				/* append to wholeMessage */
 				strcat(wholeMessage, buffer);
+				/* Clear buffer before reading next chunk */
+				memset(buffer, 0, BUFSIZ);
 			}
 		} while(n > 0);
 	}
@@ -222,14 +226,13 @@ static int sendHint(int newsockfd, int workingSize) {
 	}
 	/* Finish building message */
 	hintMessage[0] = RESULT;
-	hintMessage[1] = '\0';
 	strcat(hintMessage, ":");
 	strcat(hintMessage, hintGraphSize);
 	strcat(hintMessage, ":");
 	strcat(hintMessage, cliqueCount);
 	strcat(hintMessage, ":");
 	strcat(hintMessage, hintGraph);
-	
+
 	/* just checking */
 	if(hintGraph == NULL) {
 		printf("Error: failed to build hint message.\n");
