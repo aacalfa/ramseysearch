@@ -84,7 +84,6 @@ int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
 	/* Prepare the sending message. */
 	/* Format RESULT:MATRIXSIZE:CLIQUECOUNT:MATRIX */
 	msg[0] = RESULT;
-	msg[1] = '\0';
 	strcat(msg, ":");
 	strcat(msg, MATRIXSIZE);
 	strcat(msg, ":");
@@ -146,7 +145,6 @@ char* sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE) {
 	/* Prepare the sending message. */
 	/* Format REQUEST:MATRIXSIZE */
 	msg[0] = REQUEST;
-	msg[1] = '\0';
 	strcat(msg, ":");
 	strcat(msg, MATRIXSIZE);
 
@@ -159,7 +157,7 @@ char* sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE) {
 	free(msg);
 
 	/* Initialize the read buffer */
-	bzero(readbuffer, BUFSIZ);
+	memset(readbuffer, 0, BUFSIZ);
 	/* Read message from the server. */
 	char *wholeMessage = (char*) malloc(READBUFFERSIZE*sizeof(char));
 	do {
