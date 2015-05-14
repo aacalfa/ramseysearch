@@ -1,3 +1,4 @@
+#include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -101,13 +102,33 @@ void SaveGraph(int *g, int gsize, char *dir_name)
 
 	char filename[BUFSIZ];
 	sprintf(filename, "%s/n%d.txt", dir_name, gsize);
+
+	/* Check if a file with the same name already exists */
+	if( access( filename, F_OK ) != -1 ) {
+		/* file exists */
+		/* Rename it so that there is no conflict */
+		char old_graphname[BUFSIZ];
+		char *new_graphname = NULL;
+
+		sprintf(old_graphname, "n%d.txt", gsize);
+
+		/* Add timestamp to differentiate */
+		asprintf(&new_graphname, "n%d_%u.txt", gsize, (unsigned)time(NULL));
+
+		char * pch;
+		/* Find occurence of old_graphname in filename */
+		pch = strstr(filename, old_graphname);
+		/* Replace it with new_graphname */
+		strncpy (pch, new_graphname, strlen(new_graphname));
+	}
+
 	FILE *f = fopen(filename, "w");
 	if (f == NULL)
 	{
-	    printf("Error opening file!\n");
-	    exit(1);
+		printf("Error opening file!\n");
+		exit(1);
 	}
-	
+
 	fprintf(f,"%d\n",gsize);
 
 	for(i=0; i < gsize; i++)

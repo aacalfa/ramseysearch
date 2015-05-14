@@ -10,6 +10,7 @@
 #include "dllist.h"
 #include "jval.h"
 #include "msg.h"
+#include "isomorph.h"
 #include "clique_count.h"
 
 typedef struct scheduler {
@@ -189,15 +190,29 @@ static void parseResult(char *pch) {
 	if(clCount == 0) {
 		if(gsize > _Scheduler->currCEsize) { /* Found a counterexample */
 			fprintf(stderr, "Counterexample successfully received!\n");
+			/* Update Scheduler */
 			_Scheduler->currCEsize = gsize;
 			_Scheduler->currCE = g;
+
+			/* Save counterexample into a file */
+			SaveGraph(g,gsize, "../../../counterexamples");
+		}
+		/* Check if new counterexample found and the counterexample already stored are isomorphs */
+		else if(gsize == _Scheduler->currCEsize) {
+			int iso = IsIsomorph(_Scheduler->currCE, g, gsize);
+			if( iso == 0) /* not isomorphs, save new counterexample found */
+				SaveGraph(g,gsize, "../../../counterexamples");
 		}
 	}
 	else if (clCount < _Scheduler->currINclcount || gsize > _Scheduler->currINsize) {/* Found an intermediate result */  
 		fprintf(stderr, "Intermediate result successfully received!\n");
+		/* Update Scheduler */
 		_Scheduler->currINclcount = clCount;
 		_Scheduler->currINsize = gsize;
 		_Scheduler->currIN = g;
+
+		/* Save intermediate result in a file */
+		SaveGraph(g,gsize, "../../../intermediate");
 	}
 
 	fprintf(stderr,"gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
