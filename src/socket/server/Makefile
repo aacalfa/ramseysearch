@@ -4,10 +4,11 @@ INCLUDES = -I$(TOP) -I../../utils -I../../isocheck
 CFLAGS = -g
 COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 
-INCL=../../simple_taboo_search/graph_utils.h ../../simple_taboo_search/dllist.h ../../simple_taboo_search/jval.h ../../simple_taboo_search/clique_count.h ../../utils/msg.h ../../isocheck/isomorph.h
+UTILS=../../utils
+INCL=$(UTILS)/graph_utils.h $(UTILS)/dllist.h $(UTILS)/jval.h $(TOP)/clique_count.h $(UTILS)/msg.h ../../isocheck/isomorph.h
 COMMON=../../simple_taboo_search
 PRED=.
-BOBJ=$(COMMON)/graph_utils.o $(COMMON)/dllist.o $(COMMON)/jval.o $(COMMON)/jrb.o $(COMMON)/clique_count.o ../../isocheck/isomorph.o
+BOBJ=$(UTILS)/graph_utils.o $(UTILS)/dllist.o $(UTILS)/jval.o $(UTILS)/jrb.o $(COMMON)/clique_count.o ../../isocheck/isomorph.o
 LIBS= -lm 
 
 PROGRAMS = server

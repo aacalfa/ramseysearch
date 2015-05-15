@@ -4,10 +4,11 @@ INCLUDES = -I$(TOP) -I../../utils -I../../simple_taboo_search/
 CFLAGS = -g
 COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 
-INCL=../../simple_taboo_search/graph_utils.h ../../utils/utils.h ../../utils/msg.h ./client.h 
+UTILS=../../utils
+INCL=$(UTILS)/graph_utils.h $(UTILS)/utils.h $(UTILS)/msg.h ./client.h 
 COMMON=../../simple_taboo_search
 PRED=.
-BOBJ=./client.o $(COMMON)/graph_utils.o ../../utils/utils.o $(COMMON)/taboo_search_client.o $(COMMON)/fifo.o $(COMMON)/jrb.o $(COMMON)/jval.o $(COMMON)/dllist.o $(COMMON)/clique_count.o
+BOBJ=$(UTILS)/graph_utils.o $(UTILS)/utils.o $(COMMON)/taboo_search_client.o $(UTILS)/fifo.o $(UTILS)/jrb.o $(UTILS)/jval.o $(UTILS)/dllist.o $(COMMON)/clique_count.o ./client.o
 LIBS= -lm 
 
 PROGRAMS = client
@@ -17,7 +18,7 @@ all: $(PROGRAMS)
 client: client.c $(INCL) ${BOBJ}
 	$(COMPILE) ${INCLUDES} -o client clienttest.c $(BOBJ) $(LIBS)
 
-client.o: client.c ../../simple_taboo_search/graph_utils.h
+client.o: client.c ../../utils/graph_utils.h
 	$(COMPILE) ${INCLUDES} -c client.c
 
 clean:

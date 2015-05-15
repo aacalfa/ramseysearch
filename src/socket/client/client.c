@@ -5,8 +5,10 @@
  *      Author: geurney
  */
 
-#include "graph_utils.h"
-#include "msg.h"
+//#include "graph_utils.h"
+#include "../../utils/graph_utils.h"
+//#include "msg.h"
+#include "../../utils/msg.h"
 #include "client.h"
 
 int* parseResult(char *pch, int* gsize, int* clCount) {

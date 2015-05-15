@@ -1,13 +1,13 @@
 CC = gcc
 TOP = .
-INCLUDES = -I$(TOP) -I../simple_taboo_search
+INCLUDES = -I$(TOP) -I../utils
 CFLAGS = -g 
 COMPILE = $(CC) $(INCLUDES) $(CFLAGS)
 
-INCL=../simple_taboo_search/jrb.h ../simple_taboo_search/jval.h
-COMMON=../simple_taboo_search
+UTILS=../utils
+INCL=$(UTILS)/jrb.h $(UTILS)/jval.h
 PRED=.
-BOBJ=$(COMMON)/jval.o $(COMMON)/jrb.o
+BOBJ=$(UTILS)/jval.o $(UTILS)/jrb.o
 LIBS= -lm 
 
 PROGRAMS = iso_check
