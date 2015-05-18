@@ -12,7 +12,7 @@
 #define SERVERPORT 5098
 
 /*
- * Hostname
+ * Hostnames
  */
 #define HOSTNAME  "localhost"
 #define HOSTNAME1 "169.231.88.125"
