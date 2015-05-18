@@ -16,18 +16,18 @@
 #define TABOOSIZE (500)
 #define BIGCOUNT (9999999)
 
-#define RANDOM_FLIP_RATIO (100)
-#define BCINCREASE_THRESHOLD (10)
-#define ITERATIONS_THRESHOLD (20)
-#define COUNT_RATIO_THRESHOLD (2)
+#define RANDOM_FLIP_RATIO (20) /* Number of edges to be randomly flipped at once */
+#define BCINCREASE_THRESHOLD (100) /* Attempts of decreasing the best count */
+#define ITERATIONS_THRESHOLD (250) /* How many iterations will be done before randomizing */
+#define COUNT_RATIO_THRESHOLD (5) /* Ratio: how good your current count compared to global BC */
 
 void Randomize(int *g, int gsize) {
-    int e;
-    for(e = 0; e < gsize * (gsize - 1) / RANDOM_FLIP_RATIO; e++) {
-        int i = rand() % gsize;
-        int j = rand() % gsize;
-        g[i*gsize + j] = 1 - g[i*gsize + j];
-    }
+	int e;
+	for(e = 0; e < gsize * (gsize - 1) / RANDOM_FLIP_RATIO; e++) {
+		int i = rand() % gsize;
+		int j = rand() % gsize;
+		g[i*gsize + j] = 1 - g[i*gsize + j];
+	}
 }
 
 /***
@@ -61,7 +61,7 @@ main(int argc,char *argv[])
 	int bcIncrease = 0;
     int iterations = 0;
 
-#if 1
+#if 0
 	/*
 	 * start with graph of size 8
 	 */
@@ -74,7 +74,7 @@ main(int argc,char *argv[])
 	/*
 	 * start with pre-computed graph of size 109
 	 */
-	ReadGraph("../../counterexamples/n109.txt", &g, &gsize);
+	ReadGraph("../../intermediate/n112.txt", &g, &gsize);
 #endif
 
 	/*
@@ -88,7 +88,7 @@ main(int argc,char *argv[])
 	/*
 	 * start out with all zeros
 	 */
-	memset(g,0,gsize*gsize*sizeof(int));
+	//memset(g,0,gsize*gsize*sizeof(int));
     
     /*
      * Record edge clique counts as optimization
@@ -118,7 +118,7 @@ main(int argc,char *argv[])
 			//PrintGraph(g,gsize);
 
 			/* Save counterexample into a file */
-			SaveGraph(g,gsize, "counterexamples");
+			SaveGraph(g,gsize, "../../counterexamples");
 
 			/*
 			 * make a new graph one size bigger
@@ -156,14 +156,14 @@ main(int argc,char *argv[])
 			g = new_g;
 			gsize = gsize+1;
             
-            /*
-             * enlarge the edge clique count cache
-             */
-            ecounts = malloc(gsize*gsize*sizeof(int));
-            if(ecounts == NULL) {
-                printf("ERROR: ran out of memory during malloc of ecounts!\n");
-                exit(1);
-            }
+			/*
+			 * enlarge the edge clique count cache
+			 */
+			ecounts = malloc(gsize*gsize*sizeof(int));
+			if(ecounts == NULL) {
+				printf("ERROR: ran out of memory during malloc of ecounts!\n");
+				exit(1);
+			}
 
 			/*
 			 * reset the taboo list for the new graph
@@ -172,8 +172,8 @@ main(int argc,char *argv[])
 
 			/* Reset stubbornness parameters */
 			bcIncrease = 0;
-            iterations = 0;
-            globalBestCount = BIGCOUNT;
+			iterations = 0;
+			globalBestCount = BIGCOUNT;
             
 			/*
 			 * keep going
@@ -184,11 +184,16 @@ main(int argc,char *argv[])
 		/* If stubbornness parameters are met, add some randomness to help escape local min
 		 */
 		if(bcIncrease > BCINCREASE_THRESHOLD && (iterations > ITERATIONS_THRESHOLD || count > globalBestCount * COUNT_RATIO_THRESHOLD)) {
-            printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%d, globalBestCount=%d\n", bcIncrease, iterations, count, globalBestCount);
+			printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%d, globalBestCount=%d\n", bcIncrease, iterations, count, globalBestCount);
+			/*
+			 * reset the taboo list for the new graph
+			 */
+			taboo_list = FIFOResetEdge(taboo_list);
+
 			Randomize(g, gsize);
-            bcIncrease = 0;
-            iterations = 0;
-            globalBestCount = BIGCOUNT;
+			bcIncrease = 0;
+			iterations = 0;
+			globalBestCount = BIGCOUNT;
             
             //or, we could ask the server for a hint here!
 		}
@@ -273,9 +278,9 @@ main(int argc,char *argv[])
                 g[best_i*gsize+best_j]);
 
             /* Update global best count  and save intermediate result in a file */
-            if(best_count <= globalBestCount) {
+            if(best_count < globalBestCount) {
                 globalBestCount = best_count;
-                SaveGraph(g,gsize, "intermediate");
+                SaveGraph(g,gsize, "../../intermediate");
                 bcIncrease = 0;
             }
             /* If best_count is increasing, it may mean that we reached a local minimum.
