@@ -14,8 +14,10 @@
 /*
  * Hostname
  */
-#define HOSTNAME "localhost"
-
+#define HOSTNAME  "localhost"
+#define HOSTNAME1 "169.231.88.125"
+#define HOSTNAME2 "128.111.43.63"
+#define HOSTNAME3 "128.111.43.64"
 /*
 * Flag of message.
 */

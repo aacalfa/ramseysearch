@@ -9,7 +9,7 @@
 #include "clique_count.h"
 
 int main(int argc, char *argv[]) {
-	char *feedback;
+	char *feedback = NULL;
 	int *g = NULL; /* graph adjacency matrix */
 	int gsize = 0; /* initialize working graph size */
 	int gccounter = INT_MAX; /* initialize clique count */
@@ -26,7 +26,8 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "Hello, %s! Local time is: %s\n", hostname, asctime(localtime(&t)));
 	fprintf(stderr, "Attempting to connect to server: %s ...\n", SERVERNAME);
 
-	feedback = sendRequest(HOSTNAME, SERVERPORT, size);
+  feedback = sendRequest(size);
+  
 	if(feedback != NULL)
 		fprintf(stderr, "Connection established!\n");
 	else
