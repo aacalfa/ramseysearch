@@ -26,5 +26,5 @@ char* NumtoString(int num)
 		}
 	}
 	size[len] = '\0';
-    return size;
+	return size;
 }

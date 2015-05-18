@@ -1,10 +1,35 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
 #include "fifo.h" /* for taboo list */
 #include "graph_utils.h" /* for ReadGraph */
 #include "clique_count.h"
-#include "taboo_search_client.h"
 #include "msg.h"
-#include "client.h"
 #include "utils.h"
+#include "client.h"
+
+#define EDGEONLY
+
+#define MAXSIZE (541)
+
+#define TABOOSIZE (500)
+#define BIGCOUNT (9999999)
+
+#define RANDOM_FLIP_RATIO (20) /* Number of edges to be randomly flipped at once */
+#define BCINCREASE_THRESHOLD (100) /* Attempts of decreasing the best count */
+#define ITERATIONS_THRESHOLD (250) /* How many iterations will be done before randomizing */
+#define COUNT_RATIO_THRESHOLD (5) /* Ratio: how good your current count compared to global BC */
+
+static void Randomize(int *g, int gsize) {
+	int e;
+	for(e = 0; e < gsize * (gsize - 1) / RANDOM_FLIP_RATIO; e++) {
+		int i = rand() % gsize;
+		int j = rand() % gsize;
+		g[i*gsize + j] = 1 - g[i*gsize + j];
+	}
+}
 
 /***
  *** example of very simple search for R(7,7) counter examples
@@ -30,6 +55,7 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 	void *taboo_list;
 	int globalBestCount = BIGCOUNT;
 	int bcIncrease = 0;
+int iterations = 0;
 
 	/* check whether it has a start point  */
 	if(matrixSize <= 0) { /* if no, just start from 8 */
@@ -74,8 +100,10 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 			/* Save counterexample into a file */
 			SaveGraph(g,gsize, "../../../counterexamples");
 
+			char *gsizeStr = NumtoString(gsize);
+			char *cliqueCountStr = NumtoString(count);
 			/* Send counterexample to Server */
-			int ret = sendResult(GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count));
+			int ret = sendResult(HOSTNAME, SERVERPORT, GraphtoChar(g, gsize), gsizeStr, cliqueCountStr);
 
 			/*
 			 * make a new graph one size bigger
@@ -114,25 +142,47 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 			gsize = gsize+1;
 
 			/*
+			 * enlarge the edge clique count cache
+			 */
+			ecounts = malloc(gsize*gsize*sizeof(int));
+			if(ecounts == NULL) {
+				printf("ERROR: ran out of memory during malloc of ecounts!\n");
+				exit(1);
+			}
+
+			/*
 			 * reset the taboo list for the new graph
 			 */
 			taboo_list = FIFOResetEdge(taboo_list);
 
-			/* Reset best_count increase count */
+			/* Reset stubbornness parameters */
 			bcIncrease = 0;
+			iterations = 0;
+			globalBestCount = BIGCOUNT;
+            
 			/*
 			 * keep going
 			 */
 			continue;
 		}
 
-		/* If bcIncrease is greater than the taboo size, add some randomness in
-		 * edge flipping to get out of local minimum.
+		/* If stubbornness parameters are met, add some randomness to help escape local min
 		 */
-		if(bcIncrease > TABOOSIZE) {
-			//Randomize(&g, gsize);
-		}
+		if(bcIncrease > BCINCREASE_THRESHOLD && (iterations > ITERATIONS_THRESHOLD || count > globalBestCount * COUNT_RATIO_THRESHOLD)) {
+			printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%d, globalBestCount=%d\n", bcIncrease, iterations, count, globalBestCount);
+			/*
+			 * reset the taboo list for the new graph
+			 */
+			taboo_list = FIFOResetEdge(taboo_list);
 
+			Randomize(g, gsize);
+			bcIncrease = 0;
+			iterations = 0;
+			globalBestCount = BIGCOUNT;
+
+            //or, we could ask the server for a hint here!
+		}
+        else {
 		/*
 		 * otherwise, we need to consider flipping an edge
 		 *
@@ -212,9 +262,10 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 			g[best_i*gsize+best_j]);
 
 		/* Update global best count  and save intermediate result in a file */
-		if(best_count <= globalBestCount) {
+            if(best_count < globalBestCount) {
 			globalBestCount = best_count;
-			SaveGraph(g,gsize, "../../../intermediate");
+                SaveGraph(g,gsize, "../../intermediate");
+                bcIncrease = 0;
 		}
 		/* If best_count is increasing, it may mean that we reached a local minimum.
 		 * Keep track of how many times best_count increases in value
@@ -222,9 +273,12 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 		else {
 			bcIncrease++;
 		}
+            
 		/*
 		 * rinse and repeat
 		 */
+            iterations++;
+        }
 	}
 
 	FIFODeleteGraph(taboo_list);
