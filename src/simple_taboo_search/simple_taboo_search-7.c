@@ -17,8 +17,8 @@
 #define BIGCOUNT (9999999)
 
 #define RANDOM_FLIP_RATIO (100)
-#define BCINCREASE_THRESHOLD (500)
-#define ITERATIONS_THRESHOLD (5000)
+#define BCINCREASE_THRESHOLD (10)
+#define ITERATIONS_THRESHOLD (20)
 #define COUNT_RATIO_THRESHOLD (2)
 
 void Randomize(int *g, int gsize) {
@@ -173,6 +173,7 @@ main(int argc,char *argv[])
 			/* Reset stubbornness parameters */
 			bcIncrease = 0;
             iterations = 0;
+            globalBestCount = BIGCOUNT;
             
 			/*
 			 * keep going
@@ -183,7 +184,13 @@ main(int argc,char *argv[])
 		/* If stubbornness parameters are met, add some randomness to help escape local min
 		 */
 		if(bcIncrease > BCINCREASE_THRESHOLD && (iterations > ITERATIONS_THRESHOLD || count > globalBestCount * COUNT_RATIO_THRESHOLD)) {
+            printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%d, globalBestCount=%d\n", bcIncrease, iterations, count, globalBestCount);
 			Randomize(g, gsize);
+            bcIncrease = 0;
+            iterations = 0;
+            globalBestCount = BIGCOUNT;
+            
+            //or, we could ask the server for a hint here!
 		}
         else {
             /*
