@@ -155,6 +155,15 @@ main(int argc,char *argv[])
 			free(g);
 			g = new_g;
 			gsize = gsize+1;
+            
+            /*
+             * enlarge the edge clique count cache
+             */
+            ecounts = malloc(gsize*gsize*sizeof(int));
+            if(ecounts == NULL) {
+                printf("ERROR: ran out of memory during malloc of ecounts!\n");
+                exit(1);
+            }
 
 			/*
 			 * reset the taboo list for the new graph
