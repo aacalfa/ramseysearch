@@ -75,7 +75,7 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 			SaveGraph(g,gsize, "../../../counterexamples");
 
 			/* Send counterexample to Server */
-			int ret = sendResult(HOSTNAME, SERVERPORT, GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count));
+			int ret = sendResult(GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count));
 
 			/*
 			 * make a new graph one size bigger
