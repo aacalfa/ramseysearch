@@ -181,10 +181,10 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 					g = parseMessage(feedback, &gsize, &count);
 					printf("Got a counterexample from server! New graphsize: %d\n", gsize);
 				}
-			}
-			/* Server does not have a better counterexample, randomize flips */
-			else {
-				Randomize(g, gsize);
+				/* Server does not have a better counterexample, randomize flips */
+				else {
+					Randomize(g, gsize);
+				}
 			}
 
 			/*
