@@ -10,6 +10,7 @@
 #include "fifo.h" /* for taboo list */
 #include "graph_utils.h" /* for ReadGraph */
 #include "clique_count.h"
+#include "msg.h"
 
 #define EDGEONLY
 
@@ -171,17 +172,29 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 		 */
 		if(bcIncrease > BCINCREASE_THRESHOLD && (iterations > ITERATIONS_THRESHOLD || count > globalBestCount * COUNT_RATIO_THRESHOLD)) {
 			printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%d, globalBestCount=%d\n", bcIncrease, iterations, count, globalBestCount);
+
+			/* First, let's see if the server contains a counterexample for n greater than gsize */
+			char *feedback = sendRequest(NumtoString(gsize));
+			if(feedback != NULL) {
+				if(feedback[0] != DENY) {
+					/* Server has a counterexample with n greater than gsize */
+					g = parseMessage(feedback, &gsize, &count);
+					printf("Got a counterexample from server! New graphsize: %d\n", gsize);
+				}
+			}
+			/* Server does not have a better counterexample, randomize flips */
+			else {
+				Randomize(g, gsize);
+			}
+
 			/*
 			 * reset the taboo list for the new graph
 			 */
 			taboo_list = FIFOResetEdge(taboo_list);
 
-			Randomize(g, gsize);
 			bcIncrease = 0;
 			iterations = 0;
 			globalBestCount = BIGCOUNT;
-            
-			//or, we could ask the server for a hint here!
 		}
 		else {
 			/*

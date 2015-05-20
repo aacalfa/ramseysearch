@@ -287,19 +287,22 @@ static int sendHint(int newsockfd, int workingSize) {
  * Returns 1 if the scheduler already exists.
  * Returns -1 if the initialization was unsuccessful.
  */
-int initializeScheduler(void) {
+int initializeScheduler(char *counterexample, char *intermediate) {
 	if(_Scheduler == NULL) {
 		_Scheduler = (Scheduler*) malloc(sizeof(Scheduler));
 		if(_Scheduler == NULL)
 			return -1;
 
+		char *ce;
+		char *in;
+		asprintf(&ce, "../../../counterexamples/%s", counterexample);
+		asprintf(&in, "../../../intermediate/%s", intermediate);
 		/* Initialize fields */
 		_Scheduler->clients = new_dllist();
 		/* Load best graph counterexample */
-		ReadGraph("../../../counterexamples/n111.txt", &(_Scheduler->currCE), &(_Scheduler->currCEsize));
-//		ReadGraph("../../../counterexamples/n8.txt", &(_Scheduler->currCE), &(_Scheduler->currCEsize));
+		ReadGraph(ce, &(_Scheduler->currCE), &(_Scheduler->currCEsize));
 		/* Load best intermediate counterexample */
-		ReadGraph("../../../intermediate/n112.txt", &(_Scheduler->currIN), &(_Scheduler->currINsize));
+		ReadGraph(in, &(_Scheduler->currIN), &(_Scheduler->currINsize));
 		return 0;
 	}
 	else

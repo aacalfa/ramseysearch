@@ -19,6 +19,6 @@
 #define MATRIXMAXSIZE 210*210
 
 int waitForMessage(void);
-int initializeScheduler(void);
+int initializeScheduler(char *ce, char *in);
 
 #endif /* SERVER_SERVER_H_ */
