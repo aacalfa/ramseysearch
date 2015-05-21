@@ -390,7 +390,7 @@ unsigned long long CliqueCountAllULL(int *g,
 
     if(ecounts != NULL)
     {
-        memset(ecounts,0,gsize*gsize*sizeof(int));
+        memset(ecounts,0,gsize*gsize*sizeof(unsigned long long));
     }
 
     for(i=0;i < gsize-sgsize+1; i++)
