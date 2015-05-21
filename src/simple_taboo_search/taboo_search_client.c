@@ -20,7 +20,7 @@
 #define BIGCOUNT (9999999)
 
 #define RANDOM_FLIP_RATIO (20) /* Number of edges to be randomly flipped at once */
-#define BCINCREASE_THRESHOLD (500) /* Attempts of decreasing the best count */
+#define BCINCREASE_THRESHOLD (300) /* Attempts of decreasing the best count */
 #define ITERATIONS_THRESHOLD (500) /* How many iterations will be done before randomizing */
 #define COUNT_RATIO_THRESHOLD (10) /* Ratio: how good your current count compared to global BC */
 
@@ -59,7 +59,7 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
     
     /* stubbornness parameters */
 	int bcIncrease = 0;
-    int iterations = 0;
+	int iterations = 0;
 
 	/* check whether it has a start point  */
 	if(matrixSize <= 0) { /* if no, just start from 8 */
