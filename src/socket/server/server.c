@@ -5,6 +5,8 @@
  *      Author: geurney
  */
 
+#include <time.h>
+
 #include "server.h"
 #include "graph_utils.h"
 #include "dllist.h"
@@ -12,16 +14,12 @@
 #include "msg.h"
 #include "isomorph.h"
 #include "clique_count.h"
+#include "utils.h"
 
 typedef struct scheduler {
-	int *currCE; /* Current best counter example found */
+	Dllist counterExamples; /* List of counterexamples */
+	int listSize; /* Size of the counterexample list */
 	int currCEsize; /* Current best counter example size */
-
-	int *currIN; /* Current best intermediate graph found */
-	int currINsize; /* Current best intermediate graph size */
-	int currINclcount; /* Current best intermediate result clique count */
-
-	Dllist clients; /* List of all clients currently connected */
 }Scheduler;
 
 typedef struct clientnode {
@@ -45,17 +43,16 @@ static int denyRequest(int newsockfd);
 |____\___/\__\__,_|_|
 *********************/
 
-/* addClient
- * Add a client to the Scheduler list of clients
+/* addCounterExample
+ * Add a counterxample to the Scheduler list of counterexamples
  */
-int addClient(int clisockfd, struct sockaddr_in cli_addr) {
-	/* Create ClientNode and Jval data representing the client */
-	ClientNode *clnode = (ClientNode*) malloc(sizeof(ClientNode));
-	Jval client;
-	client = new_jval_v(clnode);
+int addCounterExample(int *g) {
+	Jval ce;
+	ce = new_jval_v(g);
 
-	/* Append client to list */
-	dll_append(_Scheduler->clients, client);
+	/* Append counterexample to list */
+	dll_append(_Scheduler->counterExamples, ce);
+	_Scheduler->listSize++;
 }
 
 /* parseMessage
@@ -188,31 +185,24 @@ static void parseResult(char *pch) {
 
 	/* Update scheduler */
 	if(clCount == 0) {
+		fprintf(stderr, "Counterexample successfully received!\n");
 		if(gsize > _Scheduler->currCEsize) { /* Found a counterexample */
-			fprintf(stderr, "Counterexample successfully received!\n");
 			/* Update Scheduler */
 			_Scheduler->currCEsize = gsize;
-			_Scheduler->currCE = g;
+			/* clear list and add new counterexample */
+			free_dllist(_Scheduler->counterExamples);
+			_Scheduler->counterExamples = new_dllist();
+			_Scheduler->listSize = 0;
+			addCounterExample(g);
 
 			/* Save counterexample into a file */
 			SaveGraph(g,gsize, "../../../counterexamples");
 		}
-		/* Check if new counterexample found and the counterexample already stored are isomorphs */
+		/* Just add new counterexample */
 		else if(gsize == _Scheduler->currCEsize) {
-			int iso = IsIsomorph(_Scheduler->currCE, g, gsize);
-			if( iso == 0) /* not isomorphs, save new counterexample found */
+				addCounterExample(g);
 				SaveGraph(g,gsize, "../../../counterexamples");
 		}
-	}
-	else if (clCount < _Scheduler->currINclcount || gsize > _Scheduler->currINsize) {/* Found an intermediate result */  
-		fprintf(stderr, "Intermediate result successfully received!\n");
-		/* Update Scheduler */
-		_Scheduler->currINclcount = clCount;
-		_Scheduler->currINsize = gsize;
-		_Scheduler->currIN = g;
-
-		/* Save intermediate result in a file */
-		SaveGraph(g,gsize, "../../../intermediate");
 	}
 
 	fprintf(stderr,"gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
@@ -242,14 +232,25 @@ static int sendHint(int newsockfd, int workingSize) {
 	/* Decide which hint to send */
 	if(workingSize < _Scheduler->currCEsize) { /* Send counterexample */
 		asprintf(&hintGraphSize, "%d", _Scheduler->currCEsize);
-		hintGraph = GraphtoChar(_Scheduler->currCE, _Scheduler->currCEsize);
+		/* Pick randomly a graph from counterexamples list */
+		srand(time(NULL));
+		int idx = rand() % _Scheduler->listSize + 1;
+		int curr = 1;
+		int *key_g;
+		Dllist ptr;
+		dll_traverse(ptr,_Scheduler->counterExamples)
+		{
+			if(curr == idx) {
+				key_g = (int *)jval_v(dll_val(ptr));
+				break;
+			}
+			curr++;
+		}
+
+		hintGraph = GraphtoChar(key_g, _Scheduler->currCEsize);
 		sprintf(cliqueCount, "%d", 0);
 	}
-	else { /* Send intermediate */
-		asprintf(&hintGraphSize, "%d", _Scheduler->currINsize);
-		hintGraph = GraphtoChar(_Scheduler->currIN, _Scheduler->currINsize);
-		sprintf(cliqueCount, "%d", _Scheduler->currINclcount);
-	}
+
 	/* Finish building message */
 	hintMessage[0] = RESULT;
 	strcat(hintMessage, ":");
@@ -287,22 +288,34 @@ static int sendHint(int newsockfd, int workingSize) {
  * Returns 1 if the scheduler already exists.
  * Returns -1 if the initialization was unsuccessful.
  */
-int initializeScheduler(char *counterexample, char *intermediate) {
+int initializeScheduler(void) {
 	if(_Scheduler == NULL) {
 		_Scheduler = (Scheduler*) malloc(sizeof(Scheduler));
 		if(_Scheduler == NULL)
 			return -1;
 
-		char *ce;
-		char *in;
-		asprintf(&ce, "../../../counterexamples/%s", counterexample);
-		asprintf(&in, "../../../intermediate/%s", intermediate);
 		/* Initialize fields */
-		_Scheduler->clients = new_dllist();
-		/* Load best graph counterexample */
-		ReadGraph(ce, &(_Scheduler->currCE), &(_Scheduler->currCEsize));
-		/* Load best intermediate counterexample */
-		ReadGraph(in, &(_Scheduler->currIN), &(_Scheduler->currINsize));
+		_Scheduler->counterExamples = new_dllist();
+		_Scheduler->listSize = 0;
+
+		/* Load best graph counterexamples */
+		int file_count;
+		char **CEfiles = getCounterExamplesFromFolder("../../../counterexamples/more116", &file_count);
+		for(int i = 0; i < file_count; i++) {
+			int *g;
+			char *fname;
+			asprintf(&fname, "../../../counterexamples/more116/%s", CEfiles[i]);
+			if(ReadGraph(fname, &g, &(_Scheduler->currCEsize))) {
+				fprintf(stderr, "Loaded graph %s successfully!\n", fname);
+				addCounterExample(g);
+			}
+		}
+		// free CEfiles */
+		for (int i = 0; i < _Scheduler->listSize; i++) {
+			free(CEfiles[i]);
+		}
+		free(CEfiles);
+
 		return 0;
 	}
 	else

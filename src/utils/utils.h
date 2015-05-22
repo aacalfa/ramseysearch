@@ -9,5 +9,6 @@
 #define UTILS_H_
 
 char* NumtoString(int num);
+char** getCounterExamplesFromFolder(char *path, int *file_count);
 
 #endif /* UTILS_H_ */
