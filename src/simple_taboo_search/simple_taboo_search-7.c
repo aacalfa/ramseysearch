@@ -280,7 +280,7 @@ main(int argc,char *argv[])
             /* Update global best count  and save intermediate result in a file */
             if(best_count <= globalBestCount) {
                 globalBestCount = best_count;
-                SaveGraph(g,gsize, "../../intermediate");
+//                SaveGraph(g,gsize, "../../intermediate");
                 bcIncrease = 0;
             }
             /* If best_count is increasing, it may mean that we reached a local minimum.
