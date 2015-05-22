@@ -17,9 +17,9 @@
 #define BIGCOUNT (9999999)
 
 #define RANDOM_FLIP_RATIO (100)
-#define BCINCREASE_THRESHOLD (10)
-#define ITERATIONS_THRESHOLD (20)
-#define COUNT_RATIO_THRESHOLD (2)
+#define BCINCREASE_THRESHOLD (99999)
+#define ITERATIONS_THRESHOLD (99999)
+#define COUNT_RATIO_THRESHOLD (250)
 
 void Randomize(int *g, int gsize) {
     int e;
