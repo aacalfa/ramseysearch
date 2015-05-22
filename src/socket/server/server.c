@@ -301,7 +301,8 @@ int initializeScheduler(void) {
 		/* Load best graph counterexamples */
 		int file_count;
 		char **CEfiles = getCounterExamplesFromFolder("../../../counterexamples/more116", &file_count);
-		for(int i = 0; i < file_count; i++) {
+		int i;
+		for(i = 0; i < file_count; i++) {
 			int *g;
 			char *fname;
 			asprintf(&fname, "../../../counterexamples/more116/%s", CEfiles[i]);
@@ -311,7 +312,7 @@ int initializeScheduler(void) {
 			}
 		}
 		// free CEfiles */
-		for (int i = 0; i < _Scheduler->listSize; i++) {
+		for(i = 0; i < _Scheduler->listSize; i++) {
 			free(CEfiles[i]);
 		}
 		free(CEfiles);

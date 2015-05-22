@@ -50,7 +50,8 @@ char** getCounterExamplesFromFolder(char *path, int *file_count) {
 	/* Store names in an array of strings */
 	char **counterExamples;
 	counterExamples = (char **) malloc((*file_count) * sizeof(char*));
-	for (int j = 0; j < (*file_count); j++)
+	int j;
+	for (j = 0; j < (*file_count); j++)
 		counterExamples[j] = malloc(BUFSIZ * sizeof(char));
 
 	int i = 0;
