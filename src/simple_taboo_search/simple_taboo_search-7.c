@@ -61,7 +61,7 @@ main(int argc,char *argv[])
 	int bcIncrease = 0;
     int iterations = 0;
 
-#if 1
+#if 0
 	/*
 	 * start with graph of size 8
 	 */
@@ -88,7 +88,7 @@ main(int argc,char *argv[])
 	/*
 	 * start out with all zeros
 	 */
-	memset(g,0,gsize*gsize*sizeof(int));
+//	memset(g,0,gsize*gsize*sizeof(int));
     
     /*
      * Record edge clique counts as optimization
@@ -280,7 +280,7 @@ main(int argc,char *argv[])
             /* Update global best count  and save intermediate result in a file */
             if(best_count <= globalBestCount) {
                 globalBestCount = best_count;
-                SaveGraph(g,gsize, "intermediate");
+                SaveGraph(g,gsize, "../../intermediate");
                 bcIncrease = 0;
             }
             /* If best_count is increasing, it may mean that we reached a local minimum.
