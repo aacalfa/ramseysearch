@@ -74,7 +74,7 @@ main(int argc,char *argv[])
 	/*
 	 * start with pre-computed graph of size 109
 	 */
-	ReadGraph("../../counterexamples/n109.txt", &g, &gsize);
+	ReadGraph("../../counterexamples/n115.txt", &g, &gsize);
 #endif
 
 	/*
@@ -112,7 +112,7 @@ main(int argc,char *argv[])
 		/*
 		 * if we have a counter example
 		 */
-		if(count == 0)
+		if(count == -1)
 		{
 			printf("Eureka!  Counter-example found! Number of nodes: %d\n", gsize);
 			//PrintGraph(g,gsize);
@@ -272,6 +272,11 @@ main(int argc,char *argv[])
                 best_j,
                 g[best_i*gsize+best_j]);
 
+	    if(count==0) 
+	    {
+	    	printf("Save counterexamples\n");
+		SaveGraph(g,gsize, "../../counterexamples");
+            }
             /* Update global best count  and save intermediate result in a file */
             if(best_count <= globalBestCount) {
                 globalBestCount = best_count;
