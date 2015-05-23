@@ -1,10 +1,37 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+
+#include "client.h"
+#include "utils.h"
+#include "omp.h"
 #include "fifo.h" /* for taboo list */
 #include "graph_utils.h" /* for ReadGraph */
 #include "clique_count.h"
-#include "taboo_search_client.h"
 #include "msg.h"
-#include "client.h"
-#include "utils.h"
+
+#define EDGEONLY
+
+#define MAXSIZE (541)
+
+#define TABOOSIZE (500)
+#define BIGCOUNT (9999999)
+
+#define RANDOM_FLIP_RATIO (25) /* Number of edges to be randomly flipped at once */
+#define BCINCREASE_THRESHOLD (2000) /* Attempts of decreasing the best count */
+#define ITERATIONS_THRESHOLD (5000) /* How many iterations will be done before randomizing */
+#define COUNT_RATIO_THRESHOLD (15) /* Ratio: how good your current count compared to global BC */
+
+static void Randomize(int *g, int gsize) {
+	int e;
+	for(e = 0; e < gsize * (gsize - 1) / RANDOM_FLIP_RATIO; e++) {
+		int i = rand() % gsize;
+		int j = rand() % gsize;
+		g[i*gsize + j] = 1 - g[i*gsize + j];
+	}
+}
 
 /***
  *** example of very simple search for R(7,7) counter examples
@@ -29,7 +56,10 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 	int best_j;
 	void *taboo_list;
 	int globalBestCount = BIGCOUNT;
+    
+    /* stubbornness parameters */
 	int bcIncrease = 0;
+	int iterations = 0;
 
 	/* check whether it has a start point  */
 	if(matrixSize <= 0) { /* if no, just start from 8 */
@@ -75,7 +105,7 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 			SaveGraph(g,gsize, "../../../counterexamples");
 
 			/* Send counterexample to Server */
-			int ret = sendResult(HOSTNAME, SERVERPORT, GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count));
+			int ret = sendResult(GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count));
 
 			/*
 			 * make a new graph one size bigger
@@ -114,121 +144,156 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 			gsize = gsize+1;
 
 			/*
+			 * enlarge the edge clique count cache
+			 */
+			ecounts = malloc(gsize*gsize*sizeof(int));
+			if(ecounts == NULL) {
+				printf("ERROR: ran out of memory during malloc of ecounts!\n");
+				exit(1);
+			}
+
+			/*
 			 * reset the taboo list for the new graph
 			 */
 			taboo_list = FIFOResetEdge(taboo_list);
 
-			/* Reset best_count increase count */
+			/* Reset stubbornness parameters */
 			bcIncrease = 0;
+			iterations = 0;
+			globalBestCount = BIGCOUNT;
+            
 			/*
 			 * keep going
 			 */
 			continue;
 		}
 
-		/* If bcIncrease is greater than the taboo size, add some randomness in
-		 * edge flipping to get out of local minimum.
+		/* If stubbornness parameters are met, add some randomness to help escape local min
 		 */
-		if(bcIncrease > TABOOSIZE) {
-			//Randomize(&g, gsize);
-		}
+		if(bcIncrease > BCINCREASE_THRESHOLD && (iterations > ITERATIONS_THRESHOLD || count > globalBestCount * COUNT_RATIO_THRESHOLD)) {
+			printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%d, globalBestCount=%d\n", bcIncrease, iterations, count, globalBestCount);
 
-		/*
-		 * otherwise, we need to consider flipping an edge
-		 *
-		 * let's speculative flip each edge, record the new count,
-		 * and unflip the edge.  We'll then remember the best flip and
-		 * keep it next time around
-		 *
-		 * only need to work with upper triangle of matrix =>
-		 * notice the indices
-		 */
-		best_count = BIGCOUNT;
-		for(i=0; i < gsize; i++)
-		{
-			for(j=i+1; j < gsize; j++)
-			{
-				/*
-				 * flip it
-				 */
-				g[i*gsize+j] = 1 - g[i*gsize+j];
-
-				/*
-				 * compute the new count based on the edge flip
-				 */
-				//count = CliqueCount(g,gsize);
-				new_count = count - ecounts[i*gsize+j] + CliqueCountEdge(g,gsize,i,j);
-
-				/*
-				 * is it better and the i,j,count not taboo?
-				 */
-#ifdef EDGEONLY
-				if((new_count < best_count) && 
-					!FIFOFindEdge(taboo_list,i,j))
-#else
-				if((new_count < best_count) && 
-					!FIFOFindEdgeCount(taboo_list,i,j,count))
-#endif
-				{
-					best_count = new_count;
-					best_i = i;
-					best_j = j;
+			/* First, let's see if the server contains a counterexample for n greater than gsize */
+			char *feedback = sendRequest(NumtoString(gsize));
+			if(feedback != NULL) {
+				if(feedback[0] != DENY) {
+					/* Server has a counterexample with n greater than gsize */
+					g = parseMessage(feedback, &gsize, &count);
+					printf("Got a counterexample from server! New graphsize: %d\n", gsize);
 				}
-
-				/*
-				 * flip it back
-				 */
-				g[i*gsize+j] = 1 - g[i*gsize+j];
+				/* Server does not have a better counterexample, randomize flips */
+				else {
+					Randomize(g, gsize);
+				}
 			}
-		}
 
-		if(best_count == BIGCOUNT) {
-			printf("no best edge found, terminating\n");
-			exit(1);
-		}
-	
-		/*
-		 * keep the best flip we saw
-		 */
-		g[best_i*gsize+best_j] = 1 - g[best_i*gsize+best_j];
+			/*
+			 * reset the taboo list for the new graph
+			 */
+			taboo_list = FIFOResetEdge(taboo_list);
 
-		/*
-		 * taboo this graph configuration so that we don't visit
-		 * it again
-		 */
-		count = CliqueCount(g,gsize);
+			bcIncrease = 0;
+			iterations = 0;
+			globalBestCount = BIGCOUNT;
+		}
+		else {
+			/*
+			 * otherwise, we need to consider flipping an edge
+			 *
+			 * let's speculative flip each edge, record the new count,
+			 * and unflip the edge.  We'll then remember the best flip and
+			 * keep it next time around
+			 *
+			 * only need to work with upper triangle of matrix =>
+			 * notice the indices
+			 */
+			best_count = BIGCOUNT;
+			for(i=0; i < gsize; i++)
+			{
+				for(j=i+1; j < gsize; j++)
+				{
+					/*
+					 * flip it
+					 */
+					g[i*gsize+j] = 1 - g[i*gsize+j];
+
+					/*
+					 * compute the new count based on the edge flip
+					 */
+					//count = CliqueCount(g,gsize);
+					new_count = count - ecounts[i*gsize+j] + CliqueCountEdge(g,gsize,i,j);
+
+					/*
+					 * is it better and the i,j,count not taboo?
+					 */
 #ifdef EDGEONLY
-		FIFOInsertEdge(taboo_list,best_i,best_j);
+					if((new_count < best_count) && 
+						!FIFOFindEdge(taboo_list,i,j))
 #else
-		FIFOInsertEdgeCount(taboo_list,best_i,best_j,count);
+					if((new_count < best_count) && 
+						!FIFOFindEdgeCount(taboo_list,i,j,count))
+#endif
+					{
+						best_count = new_count;
+						best_i = i;
+						best_j = j;
+					}
+
+					/*
+					 * flip it back
+					 */
+					g[i*gsize+j] = 1 - g[i*gsize+j];
+				}
+			}
+
+			if(best_count == BIGCOUNT) {
+				printf("no best edge found, terminating\n");
+				exit(1);
+			}
+
+			/*
+			 * keep the best flip we saw
+			 */
+			g[best_i*gsize+best_j] = 1 - g[best_i*gsize+best_j];
+
+			/*
+			 * taboo this graph configuration so that we don't visit
+			 * it again
+			 */
+			count = CliqueCount(g,gsize);
+#ifdef EDGEONLY
+			FIFOInsertEdge(taboo_list,best_i,best_j);
+#else
+			FIFOInsertEdgeCount(taboo_list,best_i,best_j,count);
 #endif
 
-		printf("ce size: %d, best_count: %d, count: %d, best edge: (%d,%d), new color: %d\n",
-			gsize,
-			best_count,
-			count,
-			best_i,
-			best_j,
-			g[best_i*gsize+best_j]);
+			printf("ce size: %d, best_count: %d, count: %d, best edge: (%d,%d), new color: %d\n",
+				gsize,
+				best_count,
+				count,
+				best_i,
+				best_j,
+				g[best_i*gsize+best_j]);
 
-		/* Update global best count  and save intermediate result in a file */
-		if(best_count <= globalBestCount) {
-			globalBestCount = best_count;
-			SaveGraph(g,gsize, "../../../intermediate");
+			/* Update global best count  and save intermediate result in a file */
+			if(best_count < globalBestCount) {
+				globalBestCount = best_count;
+				bcIncrease = 0;
+			}
+			/* If best_count is increasing, it may mean that we reached a local minimum.
+			 * Keep track of how many times best_count increases in value
+			 */
+			else {
+				bcIncrease++;
+			}
+			/*
+			 * rinse and repeat
+			 */
+			iterations++;
 		}
-		/* If best_count is increasing, it may mean that we reached a local minimum.
-		 * Keep track of how many times best_count increases in value
-		 */
-		else {
-			bcIncrease++;
-		}
-		/*
-		 * rinse and repeat
-		 */
 	}
 
 	FIFODeleteGraph(taboo_list);
-
 
 	return(0);
 

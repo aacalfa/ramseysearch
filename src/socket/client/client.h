@@ -20,12 +20,12 @@
 /*
 * Send a counter example or intermediate result to the server.
 */
-int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE, char* CLIQUECOUNT);
+int sendResult(char* MATRIX, char* MATRIXSIZE, char* CLIQUECOUNT);
 
 /*
 * Send a request to the server to get a counter example or an intermediate result.
 */
-char* sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE);
+char* sendRequest(char* MATRIXSIZE);
 
 /*
 * Parse the result received from the server.

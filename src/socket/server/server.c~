@@ -300,12 +300,12 @@ int initializeScheduler(void) {
 
 		/* Load best graph counterexamples */
 		int file_count;
-		char **CEfiles = getCounterExamplesFromFolder("../../../counterexamples", &file_count);
+		char **CEfiles = getCounterExamplesFromFolder("../../../counterexamples/more116", &file_count);
 		int i;
 		for(i = 0; i < file_count; i++) {
 			int *g;
 			char *fname;
-			asprintf(&fname, "../../../counterexamples/%s", CEfiles[i]);
+			asprintf(&fname, "../../../counterexamples/more116/%s", CEfiles[i]);
 			if(ReadGraph(fname, &g, &(_Scheduler->currCEsize))) {
 				fprintf(stderr, "Loaded graph %s successfully!\n", fname);
 				addCounterExample(g);

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-
+#include "client.h"
 #include "omp.h"
 #include "fifo.h" /* for taboo list */
 #include "graph_utils.h" /* for ReadGraph */
@@ -74,7 +74,7 @@ main(int argc,char *argv[])
 	/*
 	 * start with pre-computed graph of size 109
 	 */
-	ReadGraph("../../counterexamples/n115.txt", &g, &gsize);
+	ReadGraph("../../../../more116/Seed1/n116.txt", &g, &gsize);
 #endif
 
 	/*
@@ -271,12 +271,16 @@ main(int argc,char *argv[])
                 best_i,
                 best_j,
                 g[best_i*gsize+best_j]);
-
+/*every time generate a new counterexample, save it on disk and send it to the server, so that the server can update automatically*/
 	    if(count==0) 
 	    {
+		/*save counterexample on disk*/
 	    	printf("Save counterexamples\n");
 		SaveGraph(g,gsize, "../../counterexamples");
-            }
+		/*send it to the server*/
+		printf("Send to the server\n");
+		int ret = sendResult(GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count));
+	    }
             /* Update global best count  and save intermediate result in a file */
             if(best_count <= globalBestCount) {
                 globalBestCount = best_count;

@@ -48,43 +48,58 @@ int* parseMessage(char* msg, int* gsize, int* clCount) {
  * Send a counter example or intermediate result to the server. Flag is to indicate the content.
  * feedback is a buffer to store message from the server.
  */
-int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
-		char* CLIQUECOUNT) {
+int sendResult(char* MATRIX, char* MATRIXSIZE, char* CLIQUECOUNT) {
 	int sockfd; /* Socket file describer */
 	int portno; /* Port Number */
 	int n; /* Read/Write status flag */
 	struct sockaddr_in serv_addr;  /* Server Address */
 	struct hostent *server;  /* Server */
 	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); /* Message to send. */
-
+  int i = 0;
+  int trytime = 0;
+  char *hostname = NULL;
+  char *hostnames[3]; 
+  hostnames[0] = HOSTNAME1;
+  hostnames[1] = HOSTNAME2;
+  hostnames[2] = HOSTNAME3;
+  
 	/* Initialize msg */
 	memset(msg, 0, READBUFFERSIZE);
 
 	/* Establish Connection to the server. */
-	if (hostname == NULL) {
-		fprintf(stderr,"Error: Wrong Hostname!\n");
-		return -1;
-	}
-	portno = HOSTPORT;
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0) {
-		fprintf(stderr,"Error: Fail to open socket\n");
-		return -1;
-	}
-	server = gethostbyname(hostname);
-	if (server == NULL) {
-		fprintf(stderr,"Error: No such host\n");
-		return -1;
-	}
-	bzero((char *) &serv_addr, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	bcopy((char *) server->h_addr,(char *)&serv_addr.sin_addr.s_addr, server->h_length);
-	serv_addr.sin_port = htons(portno);
-	if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))
-			< 0) {
-		fprintf(stderr,"Error: Fail to connect\n");
-		return -1;
-	}
+  do {
+      hostname = hostnames[i++];
+  	if (hostname == NULL) {
+  		fprintf(stderr,"Error: Hostname is NULL!\n");
+  		continue;
+  	}
+  	portno = SERVERPORT;
+  	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  	if (sockfd < 0) {
+  		fprintf(stderr,"Error: Fail to open socket\n");
+  		continue;
+  	}
+  	server = gethostbyname(hostname);
+  	if (server == NULL) {
+  		fprintf(stderr,"Error: No such host: %s \n", hostname);
+  		continue;
+  	}
+  	bzero((char *) &serv_addr, sizeof(serv_addr));
+  	serv_addr.sin_family = AF_INET;
+  	bcopy((char *) server->h_addr,(char *)&serv_addr.sin_addr.s_addr, server->h_length);
+  	serv_addr.sin_port = htons(portno);
+  	if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))
+  			< 0) {
+  		fprintf(stderr,"Error: Fail to connect %s\n", hostname);
+      if(i >= 3) {
+        fprintf(stderr, "Error: All Server failed!\n");
+        return -1;
+      }
+  	} else {
+      fprintf(stderr,"Connected to %s\n", hostname);
+      break;
+    }
+ }while(i < 3);
 
 	/* Prepare the sending message. */
 	/* Format RESULT:MATRIXSIZE:CLIQUECOUNT:MATRIX */
@@ -112,7 +127,7 @@ int sendResult(char* hostname, int HOSTPORT, char* MATRIX, char* MATRIXSIZE,
  * Send a request to the server to get a counter example or an intermediate result.
  * feedback is to store the message received from server.
  */
-char* sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE) {
+char* sendRequest(char* MATRIXSIZE) {
 	int sockfd; /* Socket file describer */
 	int portno; /* Port Number */
 	int n; /* Read/Write status flag */
@@ -120,32 +135,48 @@ char* sendRequest(char* hostname, int HOSTPORT, char* MATRIXSIZE) {
 	struct hostent *server;  /* Server */
 	char readbuffer[BUFSIZ];  /* Buffer for message received from server. */
 	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); /* Message to send. */
-
+  int i = 0;
+  int trytime = 0;
+  char *hostname = NULL;
+  char *hostnames[3]; 
+  hostnames[0] = HOSTNAME1;
+  hostnames[1] = HOSTNAME2;
+  hostnames[2] = HOSTNAME3;
+  
 	/* Establish Connection to the server. */
-	if (hostname == NULL) {
-		fprintf(stderr,"Error: Wrong Hostname!\n");
-		return NULL;
-	}
-	portno = HOSTPORT;
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0) {
-		fprintf(stderr,"Error: Fail to open socket\n");
-		return NULL;
-	}
-	server = gethostbyname(hostname);
-	if (server == NULL) {
-		fprintf(stderr,"Error: No such host\n");
-		return NULL;
-	}
-	bzero((char *) &serv_addr, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	bcopy((char *) server->h_addr,(char *)&serv_addr.sin_addr.s_addr, server->h_length);
-	serv_addr.sin_port = htons(portno);
-	if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))
-			< 0) {
-		fprintf(stderr,"Error: Fail to connect\n");
-		return NULL;
-	}
+  do {
+      hostname = hostnames[i++];
+  	if (hostname == NULL) {
+  		fprintf(stderr,"Error: Hostname is NULL!\n");
+  		continue;
+  	}
+  	portno = SERVERPORT;
+  	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  	if (sockfd < 0) {
+  		fprintf(stderr,"Error: Fail to open socket\n");
+  		continue;
+  	}
+  	server = gethostbyname(hostname);
+  	if (server == NULL) {
+  		fprintf(stderr,"Error: No such host: %s \n", hostname);
+  		continue;
+  	}
+  	bzero((char *) &serv_addr, sizeof(serv_addr));
+  	serv_addr.sin_family = AF_INET;
+  	bcopy((char *) server->h_addr,(char *)&serv_addr.sin_addr.s_addr, server->h_length);
+  	serv_addr.sin_port = htons(portno);
+  	if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))
+  			< 0) {
+  		fprintf(stderr,"Error: Fail to connect %s\n", hostname);
+      if(i >= 3) {
+        fprintf(stderr, "Error: All Server failed!\n");
+        return NULL;
+      }
+  	} else {
+      fprintf(stderr,"Connected to %s\n", hostname);
+      break;
+    }
+ }while(i < 3);
 
 	/* Prepare the sending message. */
 	/* Format REQUEST:MATRIXSIZE */
