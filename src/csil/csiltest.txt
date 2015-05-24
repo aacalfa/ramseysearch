@@ -50,7 +50,6 @@ mcl-19.cs.ucsb.edu
 mcl-20.cs.ucsb.edu
 mcl-21.cs.ucsb.edu
 mcl-22.cs.ucsb.edu
-mcl-23.cs.ucsb.edu
 mcl-24.cs.ucsb.edu
 mcl-25.cs.ucsb.edu
 mcl-26.cs.ucsb.edu
