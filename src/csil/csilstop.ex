@@ -1,6 +1,6 @@
 #!/usr/bin/expect
 set count 0
-set f [open "csil.txt"]
+set f [open "csiltest.txt"]
 set hosts [split [read $f] "\n"]
 close $f
 
@@ -14,7 +14,7 @@ foreach host $hosts {
 		set timeout 20
 		spawn ssh $host
 		expect "$ "
-		send "killall simple_taboo_search-7\r"
+		send "killall client\r"
 		expect "$ "
 		send "exit\r"
 		expect "$ "
