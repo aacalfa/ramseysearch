@@ -150,7 +150,7 @@ static int parseRequest(char *pch, int *workingSize) {
 	*workingSize = atoi(pch);
 
 	/* Decide whether to send a hint or not */
-	if(*workingSize < _Scheduler->currCEsize) /* Can send a hint to the client */
+	if(*workingSize <= _Scheduler->currCEsize) /* Can send a hint to the client */
 		return 1;
 	else/* Found an intermediate result */  
 		return 0;
@@ -230,7 +230,7 @@ static int sendHint(int newsockfd, int workingSize) {
 	/* Hint message structure: [result flag]:[matrixsize]:[cliquecount]:[graphmatrix] */
 
 	/* Decide which hint to send */
-	if(workingSize < _Scheduler->currCEsize) { /* Send counterexample */
+	if(workingSize <= _Scheduler->currCEsize) { /* Send counterexample */
 		asprintf(&hintGraphSize, "%d", _Scheduler->currCEsize);
 		/* Pick randomly a graph from counterexamples list */
 		srand(time(NULL));
