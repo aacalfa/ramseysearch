@@ -56,6 +56,7 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 	int best_j;
 	void *taboo_list;
 	int globalBestCount = BIGCOUNT;
+	int startFromCE = 0;
     
     /* stubbornness parameters */
 	int bcIncrease = 0;
@@ -73,6 +74,7 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 		memset(g,0,gsize*gsize*sizeof(int));
 	}else { /* if yes, start with the matrix */
 		gsize = matrixSize;
+		startFromCE = 1;
 	}
 	
 	/*
@@ -105,8 +107,11 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 			SaveGraph(g,gsize, "../../../counterexamples");
 
 			/* Send counterexample to Server */
-			int ret = sendResult(GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count));
+			if(!startFromCE) {
+				int ret = sendResult(GraphtoChar(g, gsize), NumtoString(gsize), NumtoString(count));
+			}
 
+			startFromCE = 0;
 			/*
 			 * make a new graph one size bigger
 			 */
