@@ -1,4 +1,5 @@
 This Expect Script can start/stop total 82 Csil Machines.
 csil.txt is the list of 82 available Csil Machines to be used.
-csilstart.ex starts the program at bettertaboo/src/simple_taboo_search.
-csilstop.ex kills the program with the process name simple_taboo_search-7.
+csiltest.txt is the list of 64 available Csil Machines to be used.
+csilstart.ex starts the program at ramseysearch/src/socket/client.
+csilstop.ex kills the program with the process name client.

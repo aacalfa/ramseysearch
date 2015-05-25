@@ -1,6 +1,6 @@
 #!/usr/bin/expect
 set count 0
-set f [open "csil.txt"]
+set f [open "csiltest.txt"]
 set hosts [split [read $f] "\n"]
 close $f
 spawn rm bettertaboo/src/simple_taboo_search/pid.txt
@@ -16,9 +16,9 @@ foreach host $hosts {
 		set timeout 20
 		spawn ssh $host
 		expect "$ "
-		send "cd bettertaboo/src/simple_taboo_search\r"
+		send "cd ramseysearch/src/socket/client\r"
 		expect "$ "
-		send "nohup ./simple_taboo_search-7 >$count.out &\r"
+		send "nohup ./client >$count.out &\r"
 		send "echo $! >> pid.txt\r"	
 		send "exit\r"
 		expect "$ "
