@@ -50,7 +50,7 @@ static int denyRequest(int newsockfd);
 int addCounterExample(int *g) {
 	Jval ce;
 	ce = new_jval_v(g);
-
+//	fprintf(stderr, "add counter example\n");
 	/* Append counterexample to list */
 	dll_append(_Scheduler->counterExamples, ce);
 	_Scheduler->listSize++;
@@ -151,7 +151,7 @@ static int parseRequest(char *pch, int *workingSize) {
 	*workingSize = atoi(pch);
 
 	/* Decide whether to send a hint or not */
-	if(*workingSize <= _Scheduler->currCEsize) /* Can send a hint to the client */
+	if(*workingSize <= _Scheduler->currCEsize+1) /* Can send a hint to the client */
 		return 1;
 	else/* Found an intermediate result */  
 		return 0;
@@ -195,18 +195,22 @@ static void parseResult(char *pch) {
 			_Scheduler->counterExamples = new_dllist();
 			_Scheduler->listSize = 0;
 			addCounterExample(g);
-
+			/*print only when save a counterexample*/
+			fprintf(stderr, "get a counterexample with bigger size, size: %d\n, currCEsize: %d\n", gsize, _Scheduler->currCEsize);
 			/* Save counterexample into a file */
 			SaveGraph(g,gsize, "../../../counterexamples");
 		}
 		/* Just add new counterexample */
 		else if(gsize == _Scheduler->currCEsize) {
+				fprintf(stderr, "save an counterexample with same size\n");
 				addCounterExample(g);
 				SaveGraph(g,gsize, "../../../counterexamples");
 		}
 	}
 
-	fprintf(stderr,"gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
+//	fprintf(stderr,"gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
+
+//	fprintf(stderr,"gsize = %d, clCount = %d\n", gsize, clCount);
 }
 
 static int denyRequest(int newsockfd) {
@@ -231,15 +235,16 @@ static int sendHint(int newsockfd, int workingSize) {
 	/* Hint message structure: [result flag]:[matrixsize]:[cliquecount]:[graphmatrix] */
 
 	/* Decide which hint to send */
-	if(workingSize <= _Scheduler->currCEsize) { /* Send counterexample */
+	if(workingSize <= _Scheduler->currCEsize+1) { /* Send counterexample */
 		asprintf(&hintGraphSize, "%d", _Scheduler->currCEsize);
 		/* Pick randomly a graph from counterexamples list */
 		srand(time(NULL));
 		int idx = rand() % _Scheduler->listSize + 1;
+//		printf("index: %d\n", idx);
 		int curr = 1;
 		int *key_g;
 		Dllist ptr;
-		dll_traverse(ptr,_Scheduler->counterExamples)
+		dll_traverse(ptr,dll_first(_Scheduler->counterExamples))
 		{
 			if(curr == idx) {
 				key_g = (int *)jval_v(dll_val(ptr));
@@ -249,6 +254,22 @@ static int sendHint(int newsockfd, int workingSize) {
 		}
 
 		hintGraph = GraphtoChar(key_g, _Scheduler->currCEsize);
+		/*Delete the node after sending it to the client, so that no client can work on the same counterexample*/
+//		fprintf(stderr, "ptr: %p\n", ptr);
+//		fprintf(stderr, "List size pre: %d",);
+
+//		fprintf(stderr, "1List size: %d\n", _Scheduler->listSize);
+		dll_delete_node(ptr);
+
+/*		dll_traverse(ptr,_Scheduler->counterExamples)
+		{
+			printf("%p\n",ptr);
+		}*/
+
+//		fprintf(stderr, "2before minus List size: %d\n", _Scheduler->listSize);
+		_Scheduler->listSize = _Scheduler->listSize-1;		/*Update the list size after deleting*/
+		fprintf(stderr, "List size: %d\n", _Scheduler->listSize);
+
 		sprintf(cliqueCount, "%d", 0);
 	}
 
@@ -319,6 +340,8 @@ int initializeScheduler(void) {
 				addCounterExample(g);
 			}
 		}
+		/*Print list size*/
+		fprintf(stderr, "List size after initialization: %d\n", _Scheduler->listSize);
 		// free CEfiles */
 		for(i = 0; i < _Scheduler->listSize; i++) {
 			free(CEfiles[i]);
