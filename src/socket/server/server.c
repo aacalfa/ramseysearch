@@ -6,6 +6,7 @@
  */
 
 #include <time.h>
+#include <sys/mman.h>
 
 #include "server.h"
 #include "graph_utils.h"
@@ -293,6 +294,13 @@ int initializeScheduler(void) {
 		_Scheduler = (Scheduler*) malloc(sizeof(Scheduler));
 		if(_Scheduler == NULL)
 			return -1;
+
+		/* Set the Scheduler pointer to be shared */
+#ifdef __APPLE__
+		_Scheduler = mmap(NULL, sizeof(_Scheduler), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+#else
+		_Scheduler = mmap(NULL, sizeof(_Scheduler), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+#endif
 
 		/* Initialize fields */
 		_Scheduler->counterExamples = new_dllist();
