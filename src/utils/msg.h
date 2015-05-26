@@ -15,8 +15,8 @@
  * Hostname
  */
 #define HOSTNAME "localhost"
-#define HOSTNAME1 "52.11.221.59"
-#define HOSTNAME2 "localhost"
+#define HOSTNAME1 "52.25.149.235"
+#define HOSTNAME2 "52.11.221.59"
 #define HOSTNAME3 "localhost"
 /*
 * Flag of message.
