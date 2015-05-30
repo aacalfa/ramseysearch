@@ -20,8 +20,8 @@
 #define BIGCOUNT (9999999)
 
 #define RANDOM_FLIP_RATIO (25) /* Number of edges to be randomly flipped at once */
-#define BCINCREASE_THRESHOLD (5000) /* Attempts of decreasing the best count */
-#define ITERATIONS_THRESHOLD (10000) /* How many iterations will be done before randomizing */
+#define BCINCREASE_THRESHOLD (1000) /* Attempts of decreasing the best count */
+#define ITERATIONS_THRESHOLD (2000) /* How many iterations will be done before randomizing */
 #define COUNT_RATIO_THRESHOLD (15) /* Ratio: how good your current count compared to global BC */
 
 static void Randomize(int *g, int gsize) {
