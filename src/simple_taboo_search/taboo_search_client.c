@@ -20,8 +20,8 @@
 #define BIGCOUNT (9999999)
 
 #define RANDOM_FLIP_RATIO (25) /* Number of edges to be randomly flipped at once */
-#define BCINCREASE_THRESHOLD (6000) /* Attempts of decreasing the best count */
-#define ITERATIONS_THRESHOLD (12000) /* How many iterations will be done before randomizing */
+#define BCINCREASE_THRESHOLD (5000) /* Attempts of decreasing the best count */
+#define ITERATIONS_THRESHOLD (10000) /* How many iterations will be done before randomizing */
 #define COUNT_RATIO_THRESHOLD (15) /* Ratio: how good your current count compared to global BC */
 
 static void Randomize(int *g, int gsize) {
@@ -177,21 +177,7 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 		 */
 		if(bcIncrease > BCINCREASE_THRESHOLD && (iterations > ITERATIONS_THRESHOLD || count > globalBestCount * COUNT_RATIO_THRESHOLD)) {
 			printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%d, globalBestCount=%d\n", bcIncrease, iterations, count, globalBestCount);
-
-			/* First, let's see if the server contains a counterexample for n greater than gsize */
-			char *feedback = sendRequest(NumtoString(gsize));
-			if(feedback != NULL) {
-				if(feedback[0] != DENY) {
-					/* Server has a counterexample with n greater than gsize */
-					g = parseMessage(feedback, &gsize, &count);
-					printf("Got a counterexample from server! New graphsize: %d\n", gsize);
-				}
-				/* Server does not have a better counterexample, randomize flips */
-				else {
-					Randomize(g, gsize);
-				}
-			}
-
+//		only reset the taboo list
 			/*
 			 * reset the taboo list for the new graph
 			 */
