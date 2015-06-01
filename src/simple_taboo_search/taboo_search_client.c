@@ -173,23 +173,35 @@ int tabooSearch(int *g, int matrixSize) /* when no matrix, input matrixSize as -
 			continue;
 		}
 
-		/* If stubbornness parameters are met, add some randomness to help escape local min
+		/* If stubbornness parameters are met, either add some randomness to help escape local min or
+		 * ask for hint from server.
 		 */
 		if(bcIncrease > BCINCREASE_THRESHOLD && (iterations > ITERATIONS_THRESHOLD || count > globalBestCount * COUNT_RATIO_THRESHOLD)) {
 			printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%d, globalBestCount=%d\n", bcIncrease, iterations, count, globalBestCount);
 
-			/* First, let's see if the server contains a counterexample for n greater than gsize */
-			char *feedback = sendRequest(NumtoString(gsize));
-			if(feedback != NULL) {
-				if(feedback[0] != DENY) {
-					/* Server has a counterexample with n greater than gsize */
-					g = parseMessage(feedback, &gsize, &count);
-					printf("Got a counterexample from server! New graphsize: %d\n", gsize);
+			/* We will randomly decide between asking for a hint from the server or randomizing the graph
+			 * we currently have.
+			 */
+			if(drand48() > 0.5) { /* Ask for hint */
+
+				/* First, let's see if the server contains a counterexample for n greater than gsize */
+				char *feedback = sendRequest(NumtoString(gsize));
+				if(feedback != NULL) {
+					if(feedback[0] != DENY) {
+						/* Server has a counterexample with n greater than gsize */
+						g = parseMessage(feedback, &gsize, &count);
+						printf("Got a counterexample from server! New graphsize: %d\n", gsize);
+					}
 				}
-				/* Server does not have a better counterexample, randomize flips */
-				else {
+				else { /* Could not get hint from server, randomize graph */
+					printf("Could not get hint from server!\nRandomizing graph...\n");
 					Randomize(g, gsize);
 				}
+			}
+			/* Server does not have a better counterexample, randomize flips */
+			else {
+				printf("Randomizing graph...\n");
+				Randomize(g, gsize);
 			}
 
 			/*
