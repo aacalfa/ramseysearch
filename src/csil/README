@@ -3,3 +3,4 @@ csil.txt is the list of 82 available Csil Machines to be used.
 csiltest.txt is the list of 64 available Csil Machines to be used.
 csilstart.ex starts the program at ramseysearch/src/socket/client.
 csilstop.ex kills the program with the process name client.
+csilcheck.sh checks the last 2 lines in the output files.
