@@ -195,6 +195,8 @@ static void parseResult(char *pch) {
 			_Scheduler->counterExamples = new_dllist();
 			_Scheduler->listSize = 0;
 			addCounterExample(g);
+			/* Update current pointer */
+			_Scheduler->currPtr = dll_first(_Scheduler->counterExamples);
 			/*print only when save a counterexample*/
 			fprintf(stderr, "get a counterexample with bigger size, size: %d\n, currCEsize: %d\n", gsize, _Scheduler->currCEsize);
 			/* Save counterexample into a file */
