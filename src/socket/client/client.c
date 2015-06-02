@@ -135,10 +135,11 @@ char* sendRequest(char* MATRIXSIZE) {
 	struct hostent *server;  /* Server */
 	char readbuffer[BUFSIZ];  /* Buffer for message received from server. */
 	char* msg = (char*) malloc(READBUFFERSIZE * sizeof(char)); /* Message to send. */
-  int i = 0;
-  int trytime = 0;
-  char *hostname = NULL;
-  const char *hostnames[3]; 
+	int i = 0;
+	int trytime = 0;
+	char *hostname = NULL;
+	char *hostnames[3]; 
+
   hostnames[0] = HOSTNAME1;
   hostnames[1] = HOSTNAME2;
   hostnames[2] = HOSTNAME3;

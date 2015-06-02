@@ -26,8 +26,9 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "Hello, %s! Local time is: %s\n", hostname, asctime(localtime(&t)));
 	fprintf(stderr, "Attempting to connect to server: %s ...\n", SERVERNAME);
 
-  feedback = sendRequest(size);
-  
+
+	feedback = sendRequest(size);
+
 	if(feedback != NULL)
 		fprintf(stderr, "Connection established!\n");
 	else

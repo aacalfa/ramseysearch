@@ -8,7 +8,7 @@ UTILS=../../utils
 INCL=$(UTILS)/graph_utils.h $(UTILS)/dllist.h $(UTILS)/jval.h $(TOP)/clique_count.h $(UTILS)/msg.h ../../isocheck/isomorph.h
 COMMON=../../simple_taboo_search
 PRED=.
-BOBJ=$(UTILS)/graph_utils.o $(UTILS)/dllist.o $(UTILS)/jval.o $(UTILS)/jrb.o $(COMMON)/clique_count.o ../../isocheck/isomorph.o
+BOBJ=$(UTILS)/graph_utils.o $(UTILS)/dllist.o $(UTILS)/jval.o $(UTILS)/jrb.o $(UTILS)/utils.o $(COMMON)/clique_count.o ../../isocheck/isomorph.o
 LIBS= -lm 
 
 PROGRAMS = server

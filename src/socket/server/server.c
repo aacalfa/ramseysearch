@@ -5,6 +5,9 @@
  *      Author: geurney
  */
 
+#include <time.h>
+#include <sys/mman.h>
+
 #include "server.h"
 #include "graph_utils.h"
 #include "dllist.h"
@@ -12,16 +15,13 @@
 #include "msg.h"
 #include "isomorph.h"
 #include "clique_count.h"
+#include "utils.h"
 
 typedef struct scheduler {
-	int *currCE; /* Current best counter example found */
+	Dllist counterExamples; /* List of counterexamples */
+	Dllist currPtr; /* Pointer holding current counterexample to be used next in a hint */
+	int listSize; /* Size of the counterexample list */
 	int currCEsize; /* Current best counter example size */
-
-	int *currIN; /* Current best intermediate graph found */
-	int currINsize; /* Current best intermediate graph size */
-	int currINclcount; /* Current best intermediate result clique count */
-
-	Dllist clients; /* List of all clients currently connected */
 }Scheduler;
 
 typedef struct clientnode {
@@ -45,17 +45,15 @@ static int denyRequest(int newsockfd);
 |____\___/\__\__,_|_|
 *********************/
 
-/* addClient
- * Add a client to the Scheduler list of clients
+/* addCounterExample
+ * Add a counterxample to the Scheduler list of counterexamples
  */
-int addClient(int clisockfd, struct sockaddr_in cli_addr) {
-	/* Create ClientNode and Jval data representing the client */
-	ClientNode *clnode = (ClientNode*) malloc(sizeof(ClientNode));
-	Jval client;
-	client = new_jval_v(clnode);
-
-	/* Append client to list */
-	dll_append(_Scheduler->clients, client);
+int addCounterExample(int *g) {
+	Jval ce;
+	ce = new_jval_v(g);
+	/* Append counterexample to list */
+	dll_append(_Scheduler->counterExamples, ce);
+	_Scheduler->listSize++;
 }
 
 /* parseMessage
@@ -153,7 +151,7 @@ static int parseRequest(char *pch, int *workingSize) {
 	*workingSize = atoi(pch);
 
 	/* Decide whether to send a hint or not */
-	if(*workingSize < _Scheduler->currCEsize) /* Can send a hint to the client */
+	if(*workingSize <= _Scheduler->currCEsize+1) /* Can send a hint to the client */
 		return 1;
 	else/* Found an intermediate result */  
 		return 0;
@@ -188,34 +186,29 @@ static void parseResult(char *pch) {
 
 	/* Update scheduler */
 	if(clCount == 0) {
+		fprintf(stderr, "Counterexample successfully received!\n");
 		if(gsize > _Scheduler->currCEsize) { /* Found a counterexample */
-			fprintf(stderr, "Counterexample successfully received!\n");
 			/* Update Scheduler */
 			_Scheduler->currCEsize = gsize;
-			_Scheduler->currCE = g;
-
+			/* clear list and add new counterexample */
+			free_dllist(_Scheduler->counterExamples);
+			_Scheduler->counterExamples = new_dllist();
+			_Scheduler->listSize = 0;
+			addCounterExample(g);
+			/* Update current pointer */
+			_Scheduler->currPtr = dll_first(_Scheduler->counterExamples);
+			/*print only when save a counterexample*/
+			fprintf(stderr, "get a counterexample with bigger size, size: %d\n, currCEsize: %d\n", gsize, _Scheduler->currCEsize);
 			/* Save counterexample into a file */
 			SaveGraph(g,gsize, "../../../counterexamples");
 		}
-		/* Check if new counterexample found and the counterexample already stored are isomorphs */
+		/* Just add new counterexample */
 		else if(gsize == _Scheduler->currCEsize) {
-			int iso = IsIsomorph(_Scheduler->currCE, g, gsize);
-			if( iso == 0) /* not isomorphs, save new counterexample found */
+				fprintf(stderr, "Saving a counterexample with same size\n");
+				addCounterExample(g);
 				SaveGraph(g,gsize, "../../../counterexamples");
 		}
 	}
-	else if (clCount < _Scheduler->currINclcount || gsize > _Scheduler->currINsize) {/* Found an intermediate result */  
-		fprintf(stderr, "Intermediate result successfully received!\n");
-		/* Update Scheduler */
-		_Scheduler->currINclcount = clCount;
-		_Scheduler->currINsize = gsize;
-		_Scheduler->currIN = g;
-
-		/* Save intermediate result in a file */
-		SaveGraph(g,gsize, "../../../intermediate");
-	}
-
-	fprintf(stderr,"gsize = %d, clCount = %d, g = %s\n", gsize, clCount, pch);
 }
 
 static int denyRequest(int newsockfd) {
@@ -240,16 +233,19 @@ static int sendHint(int newsockfd, int workingSize) {
 	/* Hint message structure: [result flag]:[matrixsize]:[cliquecount]:[graphmatrix] */
 
 	/* Decide which hint to send */
-	if(workingSize < _Scheduler->currCEsize) { /* Send counterexample */
+	if(workingSize <= _Scheduler->currCEsize+1) { /* Send counterexample */
 		asprintf(&hintGraphSize, "%d", _Scheduler->currCEsize);
-		hintGraph = GraphtoChar(_Scheduler->currCE, _Scheduler->currCEsize);
+		/* Get next counterexample from list */
+		int *key_g;
+		key_g = (int *)jval_v(dll_val(_Scheduler->currPtr));
+		/* Update pointer */
+		_Scheduler->currPtr = _Scheduler->currPtr->flink;
+
+		hintGraph = GraphtoChar(key_g, _Scheduler->currCEsize);
+
 		sprintf(cliqueCount, "%d", 0);
 	}
-	else { /* Send intermediate */
-		asprintf(&hintGraphSize, "%d", _Scheduler->currINsize);
-		hintGraph = GraphtoChar(_Scheduler->currIN, _Scheduler->currINsize);
-		sprintf(cliqueCount, "%d", _Scheduler->currINclcount);
-	}
+
 	/* Finish building message */
 	hintMessage[0] = RESULT;
 	strcat(hintMessage, ":");
@@ -293,13 +289,41 @@ int initializeScheduler(void) {
 		if(_Scheduler == NULL)
 			return -1;
 
+		/* Set the Scheduler pointer to be shared */
+#ifdef __APPLE__
+		_Scheduler = mmap(NULL, sizeof(_Scheduler), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+#else
+		_Scheduler = mmap(NULL, sizeof(_Scheduler), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+#endif
+
 		/* Initialize fields */
-		_Scheduler->clients = new_dllist();
-		/* Load best graph counterexample */
-		ReadGraph("../../../counterexamples/n111.txt", &(_Scheduler->currCE), &(_Scheduler->currCEsize));
-//		ReadGraph("../../../counterexamples/n8.txt", &(_Scheduler->currCE), &(_Scheduler->currCEsize));
-		/* Load best intermediate counterexample */
-		ReadGraph("../../../intermediate/n112.txt", &(_Scheduler->currIN), &(_Scheduler->currINsize));
+		_Scheduler->counterExamples = new_dllist();
+		_Scheduler->listSize = 0;
+
+		/* Load best graph counterexamples */
+		int file_count;
+		char **CEfiles = getCounterExamplesFromFolder("../../../counterexamples/more121", &file_count);
+		int i;
+		for(i = 0; i < file_count; i++) {
+			int *g;
+			char *fname;
+			asprintf(&fname, "../../../counterexamples/more121/%s", CEfiles[i]);
+			if(ReadGraph(fname, &g, &(_Scheduler->currCEsize))) {
+				fprintf(stderr, "Loaded graph %s successfully!\n", fname);
+				addCounterExample(g);
+			}
+		}
+		/*Print list size*/
+		fprintf(stderr, "List size after initialization: %d\n", _Scheduler->listSize);
+		/* Initialize current list pointer */
+		_Scheduler->currPtr = dll_first(_Scheduler->counterExamples);
+
+		/* free CEfiles */
+		for(i = 0; i < _Scheduler->listSize; i++) {
+			free(CEfiles[i]);
+		}
+		free(CEfiles);
+
 		return 0;
 	}
 	else

@@ -7,7 +7,10 @@
 #include "server.h"
 
 int main(int argc, char *argv[]) {
+	/* Initialize Scheduler */
 	initializeScheduler();
+
+	/* Run server */
 	waitForMessage();
 	return 0;
 }

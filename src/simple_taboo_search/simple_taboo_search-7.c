@@ -21,6 +21,7 @@
 #define ITERATIONS_THRESHOLD (250) /* How many iterations will be done before randomizing */
 #define COUNT_RATIO_THRESHOLD (5) /* Ratio: how good your current count compared to global BC */
 
+
 static void Randomize(int *g, int gsize) {
 	int e;
 	for(e = 0; e < gsize * (gsize - 1) / RANDOM_FLIP_RATIO; e++) {
@@ -46,22 +47,22 @@ main(int argc,char *argv[])
 	int *g;
 	int *new_g;
 	int gsize;
-	int count;
+	unsigned long long count;
 	int i;
 	int j;
-    int *ecounts;
-	int new_count;
-	int best_count;
+	unsigned long long *ecounts;
+	unsigned long long new_count;
+	unsigned long long best_count;
 	int best_i;
 	int best_j;
 	void *taboo_list;
-	int globalBestCount = BIGCOUNT;
+	unsigned long long globalBestCount = BIGCOUNT;
     
     /* stubbornness parameters */
 	int bcIncrease = 0;
-	int iterations = 0;
+    int iterations = 0;
 
-#if 0
+#if 1
 	/*
 	 * start with graph of size 8
 	 */
@@ -74,7 +75,8 @@ main(int argc,char *argv[])
 	/*
 	 * start with pre-computed graph of size 109
 	 */
-	ReadGraph("../../intermediate/n112.txt", &g, &gsize);
+
+	ReadGraph("n157.txt", &g, &gsize);
 #endif
 
 	/*
@@ -90,14 +92,15 @@ main(int argc,char *argv[])
 	 */
 	//memset(g,0,gsize*gsize*sizeof(int));
     
-    /*
-     * Record edge clique counts as optimization
-     */
-    ecounts = malloc(gsize*gsize*sizeof(int));
-    if(ecounts == NULL) {
-        printf("ERROR: ran out of memory during malloc of ecounts!\n");
-        exit(1);
-    }
+	/*
+	 * Record edge clique counts as optimization
+	 */
+	
+	ecounts = malloc(gsize*gsize*sizeof(unsigned long long));
+	if(ecounts == NULL) {
+		printf("ERROR: ran out of memory during malloc of ecounts!\n");
+		exit(1);
+	}
 
 	/*
 	 * while we do not have a publishable result
@@ -107,7 +110,7 @@ main(int argc,char *argv[])
 		/*
 		 * find out how we are doing
 		 */
-		count = CliqueCountAll(g,gsize,ecounts);
+		count = CliqueCountAllULL(g,gsize,ecounts);
 
 		/*
 		 * if we have a counter example
@@ -159,7 +162,8 @@ main(int argc,char *argv[])
 			/*
 			 * enlarge the edge clique count cache
 			 */
-			ecounts = malloc(gsize*gsize*sizeof(int));
+
+			ecounts = malloc(gsize*gsize*sizeof(unsigned long long));
 			if(ecounts == NULL) {
 				printf("ERROR: ran out of memory during malloc of ecounts!\n");
 				exit(1);
@@ -184,7 +188,7 @@ main(int argc,char *argv[])
 		/* If stubbornness parameters are met, add some randomness to help escape local min
 		 */
 		if(bcIncrease > BCINCREASE_THRESHOLD && (iterations > ITERATIONS_THRESHOLD || count > globalBestCount * COUNT_RATIO_THRESHOLD)) {
-			printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%d, globalBestCount=%d\n", bcIncrease, iterations, count, globalBestCount);
+			printf("Stubbornness threshold reached with bcIncrease=%d, iterations=%d, count=%llu, globalBestCount=%llu\n", bcIncrease, iterations, count, globalBestCount);
 			/*
 			 * reset the taboo list for the new graph
 			 */
@@ -195,7 +199,7 @@ main(int argc,char *argv[])
 			iterations = 0;
 			globalBestCount = BIGCOUNT;
             
-            //or, we could ask the server for a hint here!
+			//or, we could ask the server for a hint here!
 		}
 		else {
 			/*
@@ -222,17 +226,17 @@ main(int argc,char *argv[])
 					 * compute the new count based on the edge flip
 					 */
 					//count = CliqueCount(g,gsize);
-					new_count = count - ecounts[i*gsize+j] + CliqueCountEdge(g,gsize,i,j);
+					new_count = count - ecounts[i*gsize+j] + CliqueCountEdgeULL(g,gsize,i,j);
 					
 					/*
 					 * is it better and the i,j,count not taboo?
 					 */
 #ifdef EDGEONLY
 					if((new_count < best_count) && 
-						!FIFOFindEdge(taboo_list,i,j))
+              !FIFOFindEdge(taboo_list,i,j))
 #else
 					if((new_count < best_count) && 
-						!FIFOFindEdgeCount(taboo_list,i,j,count))
+              !FIFOFindEdgeCount(taboo_list,i,j,count))
 #endif
 					{
 						best_count = new_count;
@@ -251,7 +255,7 @@ main(int argc,char *argv[])
 				printf("no best edge found, terminating\n");
 				exit(1);
 			}
-        
+
 			/*
 			 * keep the best flip we saw
 			 */
@@ -261,14 +265,14 @@ main(int argc,char *argv[])
 			 * taboo this graph configuration so that we don't visit
 			 * it again
 			 */
-			count = CliqueCount(g,gsize);
+			count = CliqueCountULL(g,gsize);
 #ifdef EDGEONLY
 			FIFOInsertEdge(taboo_list,best_i,best_j);
 #else
 			FIFOInsertEdgeCount(taboo_list,best_i,best_j,count);
 #endif
 
-			printf("ce size: %d, best_count: %d, count: %d, best edge: (%d,%d), new color: %d\n",
+			printf("ce size: %d, best_count: %llu, count: %llu, best edge: (%d,%d), new color: %d\n",
 			    gsize,
 			    best_count,
 			    count,
