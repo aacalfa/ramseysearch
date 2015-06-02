@@ -1,9 +1,10 @@
-#!/usr/bin/expect
 set count 0
-set f [open "csiltest.txt"]
+set f [open "csilavail.txt"]
 set hosts [split [read $f] "\n"]
+set location ramseysearch/src/socket/client
+set program client
 close $f
-spawn rm bettertaboo/src/simple_taboo_search/pid.txt
+spawn rm ./$location/pid.txt
 expect "$ "
 
 # Iterate over the hosts
