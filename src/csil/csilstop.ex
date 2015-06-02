@@ -1,7 +1,8 @@
 #!/usr/bin/expect
 set count 0
-set f [open "csiltest.txt"]
+set f [open "csilavail.txt"]
 set hosts [split [read $f] "\n"]
+set program client
 close $f
 
 # Iterate over the hosts
@@ -32,4 +33,5 @@ foreach host $hosts {
                 }
         }
 }
+
 
