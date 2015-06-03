@@ -6,3 +6,7 @@ Ramsey Number R(7,7). The search basically consists of finding counter example g
 
 The goal is to find the largest set of non-isomorphic counter example graphs each having the largest node count.
 
+To compile everything, just type "make".
+
+the client executable will be in src/socket/client.
+the server executable will be in src/socket/server.
